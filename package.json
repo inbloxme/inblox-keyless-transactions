@@ -9,6 +9,7 @@
   "author": "ARJUN SASIKUMAR",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.2",
     "crypto-js": "^4.0.0"
   }
 }
