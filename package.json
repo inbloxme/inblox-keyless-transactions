@@ -1,7 +1,7 @@
 {
-  "name": "password-based-transaction-signing",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@inbloxme/password-based-tx-sign",
+  "version": "1.0.1",
+  "description": "Package for signing transactions using Inblox password.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,5 +11,20 @@
   "dependencies": {
     "axios": "^0.19.2",
     "crypto-js": "^4.0.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ARJUN-R34/Password-based-tx-signing..git"
+  },
+  "keywords": [
+    "inbloxme",
+    "blockchain",
+    "handlename",
+    "ethereum"
+  ],
+  "bugs": {
+    "url": "https://github.com/ARJUN-R34/Password-based-tx-signing./issues"
+  },
+  "homepage": "https://github.com/ARJUN-R34/Password-based-tx-signing.#readme"
 }

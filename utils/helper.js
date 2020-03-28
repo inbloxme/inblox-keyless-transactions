@@ -16,7 +16,7 @@ async function getRequest({ url }) {
     }
 };
 
-async function postRequest(params, url) {
+async function postRequest({ params, url }) {
     try {
         const response = await axios({
             url,

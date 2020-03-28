@@ -9,7 +9,7 @@ class PBTS {
 
         const params = { encryptedPrivateKey: encryptedPrivateKeyString };
 
-        const response = await postRequest({ params, url: `${AUTH_SERVICE_URL}/auth/private-key` });
+        const response = await postRequest({ params, url: 'https://dev-auth.inblox.me/auth/private-key' });
         if (response.status === 201) {
             return "Private key encrypted and stored successfully."
         }

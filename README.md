@@ -4,15 +4,15 @@
 
 Install the package by running the command,
 
-```npm install inblox-password-based-tx-sign```
+```npm install @inbloxme/password-based-tx-sign```
 
 Import the package into your project using,
 
-```const InbloxTxSign = require('inblox-password-based-tx-sign');```
+```const InbloxTxSign = require('@inbloxme/password-based-tx-sign');```
 
 Initialise the constructor using,
 
-```const txSign = new PBTS();```
+```const txSign = new InbloxTxSign();```
 
 To encrypt the private key using the password and store it, use the function,
 
