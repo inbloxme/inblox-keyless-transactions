@@ -1,28 +1,57 @@
 const cryptojs = require('crypto-js');
-const { getRequest, postRequest } = require('./utils/helper')
+
+const { getRequest, postRequest, generateToken, sendTransaction } = require('./utils/helper')
 const { AUTH_SERVICE_URL } = require('./config')
 
 class PBTS {
-    async encrypt(password, privateKey) {
+    constructor(authToken) {
+        this.authToken = authToken;
+    }
+    
+    async encryptedAndSavePrivateKey(payload) {
+        const { handlename, password, privateKey } = payload;
+
         var encryptedPrivateKey = cryptojs.AES.encrypt(privateKey, password)
         const encryptedPrivateKeyString = encryptedPrivateKey.toString();
 
         const params = { encryptedPrivateKey: encryptedPrivateKeyString };
 
-        const response = await postRequest({ params, url: 'https://dev-auth.inblox.me/auth/private-key' });
-        if (response.status === 201) {
-            return "Private key encrypted and stored successfully."
+        const { response: accessToken, error } = await generateToken({ handlename, password, authToken: this.authToken });
+
+        if (error) {
+            return error;
         }
-        return response;
+
+        const { response } = await postRequest({ params, url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
+        
+        if (response) {
+            return response;
+        }
+        return "There has been an issue. Pleaser try again later."
     }
 
-    async decrypt(password) {
-        const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key` })
+    async decryptAndSignTransaction(payload) {
+        const { password, handlename, rawTx, infuraKey, rpcUrl } = payload;
+
+        const { response: accessToken, error } = await generateToken({ handlename, password, authToken: this.authToken });
+
+        if (error) {
+            return error;
+        }
+
+        const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken })
 
         if (data) {
             var bytes = cryptojs.AES.decrypt(data.data.encryptedPrivateKey, password);
             var privateKey = bytes.toString(cryptojs.enc.Utf8);
-            return privateKey;
+
+            const { response, error } = await sendTransaction({ privateKey, rawTx, infuraKey, rpcUrl });
+
+            if (error) {
+                return error;
+            }
+
+            return response;
         }
         return "Error occured. Please try again."
     }
