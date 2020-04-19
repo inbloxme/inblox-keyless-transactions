@@ -1,6 +1,6 @@
 {
   "name": "@inbloxme/password-based-tx-sign",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Package for signing transactions using Inblox password.",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
-    "crypto-js": "^4.0.0"
+    "crypto-js": "^4.0.0",
+    "ethereumjs-tx": "^2.1.2",
+    "web3": "^1.2.6"
   },
   "devDependencies": {},
   "repository": {

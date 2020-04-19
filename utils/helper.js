@@ -1,12 +1,17 @@
 const axios = require('axios');
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx').Transaction;
 
-async function getRequest({ url }) {
+const { AUTH_SERVICE_URL } = require('../config')
+
+async function getRequest({ url, authToken, accessToken }) {
     try {
         const response = await axios({
             url,
             method: 'GET',
             headers: {
-                Authorization: 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImJlNmFkMDNmLWIxZDEtNDYwYi1iZDk1LTNjN2Q5N2IxZGJhMiJ9.eyJ1c2VySWQiOiI1ZTYzNjFkODU4ZmU5YTAwMTFjYjRjMzAiLCJuYW1lIjoiQXJqdW4iLCJlbWFpbCI6ImFyanVuMTcwOUBnbWFpbC5jb20iLCJyb2xlIjoiY29tbXVuaXR5IiwiaW5ibG94SGFuZGxlTmFtZSI6ImFyajAiLCJpc0hhbmRsZW5hbWVSZWdpc3RlcmVkT25XZWIzIjp0cnVlLCJwdWJsaWNBZGRyZXNzIjoiMHgxMzUzRkUyMWUzRDZiQTQ5ZDkyMUY3NjI2M2EyYTVDYWFmMDlBNTViIiwiaWF0IjoxNTg0NzczNDk1LCJleHAiOjE1ODUzNzgyOTUsImF1ZCI6WyJwbGF0Zm9ybSJdLCJpc3MiOiJJbmJsb3ggbmV0d29ya3MgcHJpdmF0ZSBsaW1pdGVkIiwic3ViIjoiZGV2ZWxvcGVya0BpbmJsb3gubWUifQ.e3nNdA-rAA_hje0aaLQRSmrjtkUPocabWK_Wv8M27Pri_dJJQ7XDVOlxsOT1JMiByI5RWVCX6nRq7NnItD6S0vRp7IbqzHieP-X70W2UjiGa8ov-2Uh1hohKj4AsEkoEuwhXfHpssZ8naVDIl1cmC_7n4MxI_V-MWrDCb2nGDjg',
+                Authorization: `Bearer ${authToken}`,
+                AccessToken: accessToken,
             },
         });
 
@@ -16,21 +21,78 @@ async function getRequest({ url }) {
     }
 };
 
-async function postRequest({ params, url }) {
+async function postRequest({ params, url, authToken, accessToken }) {
     try {
         const response = await axios({
             url,
             method: 'POST',
             headers: {
-                Authorization: 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImJlNmFkMDNmLWIxZDEtNDYwYi1iZDk1LTNjN2Q5N2IxZGJhMiJ9.eyJ1c2VySWQiOiI1ZTYzNjFkODU4ZmU5YTAwMTFjYjRjMzAiLCJuYW1lIjoiQXJqdW4iLCJlbWFpbCI6ImFyanVuMTcwOUBnbWFpbC5jb20iLCJyb2xlIjoiY29tbXVuaXR5IiwiaW5ibG94SGFuZGxlTmFtZSI6ImFyajAiLCJpc0hhbmRsZW5hbWVSZWdpc3RlcmVkT25XZWIzIjp0cnVlLCJwdWJsaWNBZGRyZXNzIjoiMHgxMzUzRkUyMWUzRDZiQTQ5ZDkyMUY3NjI2M2EyYTVDYWFmMDlBNTViIiwiaWF0IjoxNTg0NzczNDk1LCJleHAiOjE1ODUzNzgyOTUsImF1ZCI6WyJwbGF0Zm9ybSJdLCJpc3MiOiJJbmJsb3ggbmV0d29ya3MgcHJpdmF0ZSBsaW1pdGVkIiwic3ViIjoiZGV2ZWxvcGVya0BpbmJsb3gubWUifQ.e3nNdA-rAA_hje0aaLQRSmrjtkUPocabWK_Wv8M27Pri_dJJQ7XDVOlxsOT1JMiByI5RWVCX6nRq7NnItD6S0vRp7IbqzHieP-X70W2UjiGa8ov-2Uh1hohKj4AsEkoEuwhXfHpssZ8naVDIl1cmC_7n4MxI_V-MWrDCb2nGDjg',
+                Authorization: `Bearer ${authToken}`,
+                AccessToken: accessToken,
             },
             data: params
         });
 
-        return response;
+        return { response: response.data };
     } catch (error) {
-        return { error };
+        return { error: error.response.data.details[0] };
     }
 };
 
-module.exports = { getRequest, postRequest }
+async function generateTokenPostRequest({ params, url, authToken }) {
+    try {
+        const response = await axios({
+            url,
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+            data: params
+        });
+
+        return { response: response.data };
+    } catch (error) {
+        return { error: error.response.data.details[0] };
+    }
+};
+
+async function generateToken(payload) {
+    const { handlename, password, authToken } = payload;
+
+    const params = { handlename, password };
+    const { response, error } = await generateTokenPostRequest({ params, url: `${AUTH_SERVICE_URL}/auth/transaction-token`, authToken });
+
+    if (error) {
+        return { error };
+    }
+
+    const { data } = response;
+    return { response: data };
+}
+
+async function sendTransaction(payload) {
+    try {
+        const { privateKey, rawTx, infuraKey, rpcUrl } = payload;
+        let web3;
+
+        if (infuraKey) {
+            web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${infuraKey}`));
+        }
+        else {
+            web3 = await new Web3(new Web3.providers.HttpProvider(rpcUrl));
+        }
+
+        const pkey = Buffer.from(privateKey, 'hex');
+        const tx = new Tx(rawTx, { chain: 'ropsten', hardfork: 'petersburg' });
+
+        tx.sign(pkey);
+        const stringTx = `0x${tx.serialize().toString('hex')}`;
+
+        const response = await web3.eth.sendSignedTransaction(stringTx);
+        return { response };
+    } catch (error) {
+        return { error };
+    }
+}
+
+module.exports = { getRequest, postRequest, generateToken, sendTransaction }
