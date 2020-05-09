@@ -1,7 +1,6 @@
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-
 const { AUTH_SERVICE_URL } = require('../config')
 
 async function getRequest({ url, authToken, accessToken }) {
@@ -10,8 +9,8 @@ async function getRequest({ url, authToken, accessToken }) {
             url,
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${authToken}`,
-                AccessToken: accessToken,
+              Authorization: `Bearer ${authToken}`,
+              AccessToken: accessToken,
             },
         });
 
@@ -27,8 +26,8 @@ async function postRequest({ params, url, authToken, accessToken }) {
             url,
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${authToken}`,
-                AccessToken: accessToken,
+              Authorization: `Bearer ${authToken}`,
+              AccessToken: accessToken,
             },
             data: params
         });
@@ -39,36 +38,22 @@ async function postRequest({ params, url, authToken, accessToken }) {
     }
 };
 
-async function generateTokenPostRequest({ params, url, authToken }) {
+async function getAccessToken({ params, authToken }) {
     try {
         const response = await axios({
-            url,
+            url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${authToken}`,
+              Authorization: `Bearer ${authToken}`,
             },
             data: params
         });
 
-        return { response: response.data };
+        return { response: response.data.data };
     } catch (error) {
-        return { error: error.response.data.details[0] };
+        return { error: error.response.data.details };
     }
 };
-
-async function generateToken(payload) {
-    const { handlename, password, authToken } = payload;
-
-    const params = { handlename, password };
-    const { response, error } = await generateTokenPostRequest({ params, url: `${AUTH_SERVICE_URL}/auth/transaction-token`, authToken });
-
-    if (error) {
-        return { error };
-    }
-
-    const { data } = response;
-    return { response: data };
-}
 
 async function sendTransaction(payload) {
     try {
@@ -95,4 +80,4 @@ async function sendTransaction(payload) {
     }
 }
 
-module.exports = { getRequest, postRequest, generateToken, sendTransaction }
+module.exports = { getRequest, postRequest, getAccessToken, sendTransaction }
