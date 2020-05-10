@@ -20,21 +20,20 @@ async function getRequest({ url, authToken, accessToken }) {
     }
 };
 
-async function postRequest({ params, url, authToken, accessToken }) {
+async function postRequest({ params, url, authToken }) {
     try {
         const response = await axios({
             url,
             method: 'POST',
             headers: {
               Authorization: `Bearer ${authToken}`,
-              AccessToken: accessToken,
             },
             data: params
         });
 
         return { response: response.data };
     } catch (error) {
-        return { error: error.response.data.details[0] };
+        return { error: error.response.data.details };
     }
 };
 

@@ -1,23 +1,12 @@
 const cryptojs = require('crypto-js');
 
 const { getRequest, postRequest, getAccessToken, sendTransaction } = require('./utils/helper')
-const { AUTH_SERVICE_URL } = require('./config')
-
-async function AccessToken({ handlename, password, authToken }) {
-    const params = { handlename, password }
-    const { response, error } = await getAccessToken({ params, authToken });
-
-    if (error) {
-        return { error };
-    }
-
-    return { accessToken: response }
-}
+const { AUTH_SERVICE_URL } = require('./config');
 
 async function encryptKey({ privateKey, password }) {
     const encryptedPrivateKey = cryptojs.AES.encrypt(privateKey, password)
     const encryptedPrivateKeyString = encryptedPrivateKey.toString();
-    return { encryptedPrivateKeyString };
+    return encryptedPrivateKeyString;
 }
 
 async function decryptKey({ encryptedPrivateKey, password }) {
@@ -30,55 +19,78 @@ async function decryptKey({ encryptedPrivateKey, password }) {
     return { privateKey };
 }
 
-async function getKey() {
-    const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken })
-    if (data) {
-        return { encryptedPrivateKey: data.data.encryptedPrivateKey }
-    }
-    return { error: "Error occured. Please try again." }
-}
-
 class PBTS {
     constructor(authToken) {
         this.authToken = authToken;
     }
 
-    async postKey({ encryptedPrivateKey, accessToken }) {
-        const params = { encryptedPrivateKey };
-        const { response } = await postRequest({ params, url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
-        
-        if (response) {
-            return { response };
-        }
-        return { error: "There has been an issue. Pleaser try again later." }
-    }
+    async storeKey({ privateKey, password }) {
+        const encryptedPrivateKey = await encryptKey({ privateKey, password });
 
-    async storeKey({ privateKey, password, handlename }) {
-        const { error, accessToken } = await AccessToken({ handlename, password, authToken: this.authToken });
+        const url = `${AUTH_SERVICE_URL}/auth/private-key`;
+        const { response, error } = await postRequest({ params: { encryptedPrivateKey }, url, authToken: this.authToken });
 
         if (error) {
             return { error };
         }
-
-        const encryptedPrivateKey = await encryptKey({ privateKey, password });
-
-        const { response, error: err } = await postKey({ encryptedPrivateKey, accessToken });
-
-        if (err) {
-            return { err };
-        }
         return { response }
     }
 
-    async signKey({ encryptedPrivateKey, infuraKey, rpcUrl, rawTx }) {
-        const privateKey = await decryptKey({ encryptedPrivateKey, password })
+    async getKey({ handlename, password }) {
+        const params = { handlename, password };
 
+        const { error, response: accessToken } = await getAccessToken({ params, authToken: this.authToken });
+    
+        if (error) {
+            return { error };
+        }
+    
+        const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken })
+        
+        if (data) {
+            return { encryptedPrivateKey: data.data.encryptedPrivateKey }
+        }
+        return { error: "Error occured. Please try again." }
+    }
+
+    async signKey({ privateKey, infuraKey, rpcUrl, rawTx }) {
         const { response, error } = await sendTransaction({ privateKey, rawTx, infuraKey, rpcUrl });
         
         if (error) {
             return { error };
         }
         return { response };
+    }
+
+    async changePassword({ oldPassword, newPassword, confirmPassword, handlename }) {
+        const params = { oldPassword, newPassword, confirmPassword };
+        const url = `${AUTH_SERVICE_URL}/auth/change-password`;
+
+        const { error } = await postRequest({ params, url, authToken: this.authToken });
+
+        if (error) {
+            return { error };
+        }
+
+        const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: newPassword });
+
+        if (getKeyError) {
+            return { error: getKeyError }
+        }
+
+        const { error: decryptError, privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
+
+        if (decryptError) {
+            return { error: decryptError }
+        }
+
+        const { error: err } = await this.storeKey({ privateKey, password: newPassword });
+
+        if (err) {
+            return { error: err }
+        }
+
+        return { response: "Private key has been encrypted with new password and stored successfully." };
     }
 }
 
