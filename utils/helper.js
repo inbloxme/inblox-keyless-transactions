@@ -100,6 +100,28 @@ async function decryptKey({ encryptedPrivateKey, password }) {
   return { privateKey };
 }
 
+async function validatePassword({ password, authToken }) {
+  const url = `${AUTH_SERVICE_URL}/auth/authenticate-password`;
+  const { response, error } = await postRequest({ params: { password }, url, authToken });
+
+  if (error) {
+    return { error: error[0] };
+  }
+
+  return { response };
+}
+
+async function updatePasswordAndPrivateKey({ password, encryptedPrivateKey, authToken }) {
+  const url = `${AUTH_SERVICE_URL}/auth/update-credentials`;
+  const { response, error } = await postRequest({ params: { password, encryptedPrivateKey }, url, authToken });
+
+  if (error) {
+    return { error: error[0] };
+  }
+
+  return { response };
+}
+
 module.exports = {
-  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey,
+  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey, validatePassword, updatePasswordAndPrivateKey,
 };

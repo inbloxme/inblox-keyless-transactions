@@ -1,5 +1,5 @@
 const {
-  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey,
+  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey, validatePassword, updatePasswordAndPrivateKey,
 } = require('./utils/helper');
 const { AUTH_SERVICE_URL } = require('./config');
 
@@ -57,6 +57,14 @@ class PBTS {
   async changePassword({
     oldPassword, newPassword, confirmPassword, handlename,
   }) {
+    const { error } = await validatePassword({ password: oldPassword, authToken: this.authToken });
+
+    if (error) {
+      return { error };
+    } if (newPassword !== confirmPassword) {
+      return { error: 'New password and confirm password should match.' };
+    }
+
     const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: oldPassword });
 
     if (getKeyError) {
@@ -71,15 +79,10 @@ class PBTS {
 
     const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
 
-    const params = {
-      oldPassword, newPassword, confirmPassword, encryptedPrivateKey: newEncryptedPrivateKey,
-    };
-    const url = `${AUTH_SERVICE_URL}/auth/update-private-key`;
+    const { error: err } = await updatePasswordAndPrivateKey({ password: newPassword, encryptedPrivateKey: newEncryptedPrivateKey, authToken: this.authToken });
 
-    const { error } = await postRequest({ params, url, authToken: this.authToken });
-
-    if (error) {
-      return { error };
+    if (err) {
+      return { error: err };
     }
 
     return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
