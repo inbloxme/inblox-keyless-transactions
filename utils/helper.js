@@ -55,28 +55,30 @@ async function getAccessToken({ params, authToken }) {
 };
 
 async function sendTransaction(payload) {
-    try {
-        const { privateKey, rawTx, infuraKey, rpcUrl } = payload;
-        let web3;
+  try {
+    const {
+      privateKey, rawTx, infuraKey, rpcUrl,
+    } = payload;
+    let web3;
 
-        if (infuraKey) {
-            web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${infuraKey}`));
-        }
-        else {
-            web3 = await new Web3(new Web3.providers.HttpProvider(rpcUrl));
-        }
-
-        const pkey = Buffer.from(privateKey, 'hex');
-        const tx = new Tx(rawTx, { chain: 'ropsten', hardfork: 'petersburg' });
-
-        tx.sign(pkey);
-        const stringTx = `0x${tx.serialize().toString('hex')}`;
-
-        const response = await web3.eth.sendSignedTransaction(stringTx);
-        return { response };
-    } catch (error) {
-        return { error };
+    if (infuraKey) {
+      web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${infuraKey}`));
+    } else {
+      web3 = await new Web3(new Web3.providers.HttpProvider(rpcUrl));
     }
+
+    const pkey = Buffer.from(privateKey, 'hex');
+    const tx = new Tx(rawTx, { chain: 'ropsten', hardfork: 'petersburg' });
+
+    tx.sign(pkey);
+    const stringTx = `0x${tx.serialize().toString('hex')}`;
+
+    const response = await web3.eth.sendSignedTransaction(stringTx);
+
+    return { response };
+  } catch (error) {
+    return { error };
+  }
 }
 
 module.exports = { getRequest, postRequest, getAccessToken, sendTransaction }

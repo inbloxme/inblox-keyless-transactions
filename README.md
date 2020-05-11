@@ -27,14 +27,14 @@ Install the package by running the command,
 
 Import the package into your project using,
 
-```const InbloxTxSign = require('@inbloxme/password-based-tx-sign');```
+```const InbloxTxSign = require('@inbloxme/password-based-tx-sign').PBTS;```
 
 
 > Initialising
 
 Initialise the constructor using,
 
-```const txSign = new PBTS(authenticationToken);```
+```const txSign = new InbloxTxSign(authenticationToken);```
 
 
 > Encryption & Storage

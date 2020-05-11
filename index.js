@@ -63,16 +63,7 @@ class PBTS {
     }
 
     async changePassword({ oldPassword, newPassword, confirmPassword, handlename }) {
-        const params = { oldPassword, newPassword, confirmPassword };
-        const url = `${AUTH_SERVICE_URL}/auth/change-password`;
-
-        const { error } = await postRequest({ params, url, authToken: this.authToken });
-
-        if (error) {
-            return { error };
-        }
-
-        const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: newPassword });
+        const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: oldPassword });
 
         if (getKeyError) {
             return { error: getKeyError }
@@ -84,13 +75,18 @@ class PBTS {
             return { error: decryptError }
         }
 
-        const { error: err } = await this.storeKey({ privateKey, password: newPassword });
+        const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
 
-        if (err) {
-            return { error: err }
+        const params = { oldPassword, newPassword, confirmPassword, encryptedPrivateKey: newEncryptedPrivateKey };
+        const url = `${AUTH_SERVICE_URL}/auth/update-private-key`;
+
+        const { error } = await postRequest({ params, url, authToken: this.authToken });
+
+        if (error) {
+            return { error };
         }
 
-        return { response: "Private key has been encrypted with new password and stored successfully." };
+        return { response: "Password changed and private key has been encrypted with new password and stored successfully." };
     }
 }
 
