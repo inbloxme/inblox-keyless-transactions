@@ -1,58 +1,59 @@
+const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL } = require('../config')
+const { AUTH_SERVICE_URL } = require('../config');
 
 async function getRequest({ url, authToken, accessToken }) {
-    try {
-        const response = await axios({
-            url,
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              AccessToken: accessToken,
-            },
-        });
+  try {
+    const response = await axios({
+      url,
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        AccessToken: accessToken,
+      },
+    });
 
-        return response;
-    } catch (error) {
-        return { error };
-    }
-};
+    return response;
+  } catch (error) {
+    return { error };
+  }
+}
 
 async function postRequest({ params, url, authToken }) {
-    try {
-        const response = await axios({
-            url,
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-            data: params
-        });
+  try {
+    const response = await axios({
+      url,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      data: params,
+    });
 
-        return { response: response.data };
-    } catch (error) {
-        return { error: error.response.data.details };
-    }
-};
+    return { response: response.data };
+  } catch (error) {
+    return { error: error.response.data.details };
+  }
+}
 
 async function getAccessToken({ params, authToken }) {
-    try {
-        const response = await axios({
-            url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-            data: params
-        });
+  try {
+    const response = await axios({
+      url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      data: params,
+    });
 
-        return { response: response.data.data };
-    } catch (error) {
-        return { error: error.response.data.details };
-    }
-};
+    return { response: response.data.data };
+  } catch (error) {
+    return { error: error.response.data.details };
+  }
+}
 
 async function sendTransaction(payload) {
   try {
@@ -81,4 +82,24 @@ async function sendTransaction(payload) {
   }
 }
 
-module.exports = { getRequest, postRequest, getAccessToken, sendTransaction }
+async function encryptKey({ privateKey, password }) {
+  const encryptedPrivateKey = cryptojs.AES.encrypt(privateKey, password);
+  const encryptedPrivateKeyString = encryptedPrivateKey.toString();
+
+  return encryptedPrivateKeyString;
+}
+
+async function decryptKey({ encryptedPrivateKey, password }) {
+  const bytes = cryptojs.AES.decrypt(encryptedPrivateKey, password);
+  const privateKey = bytes.toString(cryptojs.enc.Utf8);
+
+  if (privateKey === '') {
+    return { error: 'Wrong password.' };
+  }
+
+  return { privateKey };
+}
+
+module.exports = {
+  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey,
+};
