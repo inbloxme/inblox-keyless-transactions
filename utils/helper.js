@@ -1,10 +1,11 @@
+const ethers = require('ethers');
 const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 const { AUTH_SERVICE_URL } = require('../config');
 
-async function getRequest({ url, authToken, accessToken }) {
+async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
     const response = await axios({
       url,
@@ -12,6 +13,22 @@ async function getRequest({ url, authToken, accessToken }) {
       headers: {
         Authorization: `Bearer ${authToken}`,
         AccessToken: accessToken,
+      },
+    });
+
+    return response;
+  } catch (error) {
+    return { error };
+  }
+}
+
+async function getRequest({ url, authToken }) {
+  try {
+    const response = await axios({
+      url,
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
       },
     });
 
@@ -51,7 +68,7 @@ async function getAccessToken({ params, authToken }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response.data.details };
+    return { error: error.response };
   }
 }
 
@@ -122,6 +139,66 @@ async function updatePasswordAndPrivateKey({ password, encryptedPrivateKey, auth
   return { response };
 }
 
+async function extractPrivateKey({
+  privateKey, seedPhrase, encryptedJson, password,
+}) {
+  if (privateKey) {
+    const { address } = new ethers.utils.SigningKey(privateKey);
+
+    return { response: { publicAddress: address, privateKey } };
+  }
+
+  if (seedPhrase) {
+    try {
+      const wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+      const { privateKey: pkey, address } = wallet;
+
+      return {
+        response: {
+          publicAddress: address, privateKey: pkey,
+        },
+      };
+    } catch (error) {
+      return { error: 'Invalid Mnemonic.' };
+    }
+  }
+
+  const json = JSON.stringify(encryptedJson);
+
+  try {
+    const wallet = ethers.Wallet.fromEncryptedJson(json, password);
+
+    const { address, privateKey: pKey } = wallet;
+
+    return {
+      response: { publicAddress: address, privateKey: pKey },
+    };
+  } catch (error) {
+    return { error: 'Wrong password.' };
+  }
+}
+
+async function verifyPublicAddress({ address, authToken }) {
+  const url = `${AUTH_SERVICE_URL}/auth/public-address/${address}`;
+
+  const { error, data } = await getRequest({ url, authToken });
+
+  if (error) {
+    return { error: error.response.data.details[0] };
+  }
+
+  return { response: data };
+}
+
 module.exports = {
-  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey, validatePassword, updatePasswordAndPrivateKey,
+  getRequestWithAccessToken,
+  postRequest,
+  getAccessToken,
+  sendTransaction,
+  encryptKey,
+  decryptKey,
+  validatePassword,
+  updatePasswordAndPrivateKey,
+  extractPrivateKey,
+  verifyPublicAddress,
 };
