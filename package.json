@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npm-run-all --silent test-*",
-    "test-audit": "npm audit ---audit-level=high",
-    "test-lint": "eslint ./*.js ./config ./utils '*.js'"
+    "test-audit": "npm audit --audit-level=high",
+    "test-lint": "eslint ./*.js ./config ./utils"
   },
   "author": "ARJUN SASIKUMAR",
   "license": "ISC",
