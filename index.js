@@ -1,8 +1,7 @@
-const cryptojs = require('crypto-js');
 const { Wallet } = require('ethers');
 
 const {
-  getRequest, postRequest, generateToken, sendTransaction,
+  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey, validatePassword, updatePasswordAndPrivateKey,
 } = require('./utils/helper');
 const { AUTH_SERVICE_URL } = require('./config');
 
@@ -29,60 +28,84 @@ class PBTS {
     this.authToken = authToken;
   }
 
-  async encryptedAndSavePrivateKey(payload) {
-    const { handlename, password, privateKey } = payload;
+  async storeKey({ privateKey, password }) {
+    const encryptedPrivateKey = await encryptKey({ privateKey, password });
 
-    const encryptedPrivateKey = cryptojs.AES.encrypt(privateKey, password);
-    const encryptedPrivateKeyString = encryptedPrivateKey.toString();
-
-    const params = { encryptedPrivateKey: encryptedPrivateKeyString };
-
-    const { response: accessToken, error } = await generateToken({ handlename, password, authToken: this.authToken });
+    const url = `${AUTH_SERVICE_URL}/auth/private-key`;
+    const { response, error } = await postRequest({ params: { encryptedPrivateKey }, url, authToken: this.authToken });
 
     if (error) {
-      return error;
+      return { error };
     }
 
-    const { response } = await postRequest({
-      params, url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken,
-    });
-
-    if (response) {
-      return response;
-    }
-
-    return 'There has been an issue. Pleaser try again later.';
+    return { response };
   }
 
-  async decryptAndSignTransaction(payload) {
-    const {
-      password, handlename, rawTx, infuraKey, rpcUrl,
-    } = payload;
+  async getKey({ handlename, password }) {
+    const params = { handlename, password };
 
-    const { response: accessToken, error } = await generateToken({ handlename, password, authToken: this.authToken });
+    const { error, response: accessToken } = await getAccessToken({ params, authToken: this.authToken });
 
     if (error) {
-      return error;
+      return { error };
     }
 
     const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
 
     if (data) {
-      const bytes = cryptojs.AES.decrypt(data.data.encryptedPrivateKey, password);
-      const privateKey = bytes.toString(cryptojs.enc.Utf8);
-
-      const { response, error: err } = await sendTransaction({
-        privateKey, rawTx, infuraKey, rpcUrl,
-      });
-
-      if (err) {
-        return err;
-      }
-
-      return response;
+      return { encryptedPrivateKey: data.data.encryptedPrivateKey };
     }
 
-    return 'Error occured. Please try again.';
+    return { error: 'Error occured. Please try again.' };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async signKey({
+    privateKey, infuraKey, rpcUrl, rawTx,
+  }) {
+    const { response, error } = await sendTransaction({
+      privateKey, rawTx, infuraKey, rpcUrl,
+    });
+
+    if (error) {
+      return { error };
+    }
+
+    return { response };
+  }
+
+  async changePassword({
+    oldPassword, newPassword, confirmPassword, handlename,
+  }) {
+    const { error } = await validatePassword({ password: oldPassword, authToken: this.authToken });
+
+    if (error) {
+      return { error };
+    } if (newPassword !== confirmPassword) {
+      return { error: 'New password and confirm password should match.' };
+    }
+
+    const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: oldPassword });
+
+    if (getKeyError) {
+      return { error: getKeyError };
+    }
+
+    const { error: decryptError, privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
+
+    if (decryptError) {
+      return { error: decryptError };
+    }
+
+    const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
+
+    const { error: err } = await updatePasswordAndPrivateKey({ password: newPassword, encryptedPrivateKey: newEncryptedPrivateKey, authToken: this.authToken });
+
+    if (err) {
+      return { error: err };
+    }
+
+    return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
   }
 }
 
