@@ -138,6 +138,9 @@ This method is used to import an Ethereum wallet from it's keystore file.
 `passphrase` - Keystore password.
 
 
+> **Note - For all the methods, errors are returned under `error` key and success is returned under `response` key. **
+
+
 ## WIP
 
 Want to contribute, we would :heart: that!
