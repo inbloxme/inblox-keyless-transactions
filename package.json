@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm-run-all --silent test-*",
-    "test-audit": "npm audit ---audit-level=high",
+    "test-audit": "npm audit --audit-level=high",
     "test-lint": "eslint ./*.js ./config ./utils"
   },
   "author": "ARJUN SASIKUMAR",

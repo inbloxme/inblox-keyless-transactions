@@ -1,8 +1,19 @@
+/* eslint-disable class-methods-use-this */
 const { Wallet } = require('ethers');
 
 const {
-  getRequest, postRequest, getAccessToken, sendTransaction, encryptKey, decryptKey, validatePassword, updatePasswordAndPrivateKey,
+  getRequestWithAccessToken,
+  postRequest,
+  getAccessToken,
+  sendTransaction,
+  encryptKey,
+  decryptKey,
+  validatePassword,
+  updatePasswordAndPrivateKey,
+  extractPrivateKey,
+  verifyPublicAddress,
 } = require('./utils/helper');
+
 const { AUTH_SERVICE_URL } = require('./config');
 
 async function createWallet() {
@@ -10,17 +21,41 @@ async function createWallet() {
   const { privateKey, address, mnemonic } = wallet;
 
   return {
-    publicAddress: address, privateKey, mnemonic, wallet,
+    response: {
+      publicAddress: address, privateKey, mnemonic, wallet,
+    },
   };
 }
 
 async function importFromMnemonic(mnemonic) {
-  const wallet = Wallet.fromMnemonic(mnemonic);
-  const { privateKey, address } = wallet;
+  try {
+    const wallet = Wallet.fromMnemonic(mnemonic);
+    const { privateKey, address } = wallet;
 
-  return {
-    publicAddress: address, privateKey, mnemonic, wallet,
-  };
+    return {
+      response: {
+        publicAddress: address, privateKey, mnemonic, wallet,
+      },
+    };
+  } catch (error) {
+    return { error: 'Invalid Mnemonic.' };
+  }
+}
+
+async function importFromEncryptedJson(jsonData, password) {
+  const json = JSON.stringify(jsonData);
+
+  try {
+    const wallet = await Wallet.fromEncryptedJson(json, password);
+
+    const { address, privateKey } = wallet;
+
+    return {
+      response: { publicAddress: address, privateKey, wallet },
+    };
+  } catch (error) {
+    return { error: 'Wrong password.' };
+  }
 }
 
 class PBTS {
@@ -29,37 +64,48 @@ class PBTS {
   }
 
   async storeKey({ privateKey, password }) {
-    const encryptedPrivateKey = await encryptKey({ privateKey, password });
-
-    const url = `${AUTH_SERVICE_URL}/auth/private-key`;
-    const { response, error } = await postRequest({ params: { encryptedPrivateKey }, url, authToken: this.authToken });
+    const { error } = await validatePassword({ password, authToken: this.authToken });
 
     if (error) {
       return { error };
+    }
+
+    const encryptedPrivateKey = await encryptKey({ privateKey, password });
+
+    const url = `${AUTH_SERVICE_URL}/auth/private-key`;
+    const { response, error: err } = await postRequest({
+      params: { encryptedPrivateKey }, url, authToken: this.authToken,
+    });
+
+    if (err) {
+      return { error: err };
     }
 
     return { response };
   }
 
-  async getKey({ handlename, password }) {
-    const params = { handlename, password };
-
-    const { error, response: accessToken } = await getAccessToken({ params, authToken: this.authToken });
+  async getKey({ password }) {
+    const { error } = await validatePassword({ password, authToken: this.authToken });
 
     if (error) {
       return { error };
     }
 
-    const { data } = await getRequest({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
+    const { error: err, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+
+    if (err) {
+      return { error: err };
+    }
+
+    const { data } = await getRequestWithAccessToken({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
 
     if (data) {
-      return { encryptedPrivateKey: data.data.encryptedPrivateKey };
+      return { response: data.data.encryptedPrivateKey };
     }
 
     return { error: 'Error occured. Please try again.' };
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async signKey({
     privateKey, infuraKey, rpcUrl, rawTx,
   }) {
@@ -75,7 +121,7 @@ class PBTS {
   }
 
   async changePassword({
-    oldPassword, newPassword, confirmPassword, handlename,
+    oldPassword, newPassword, confirmPassword,
   }) {
     const { error } = await validatePassword({ password: oldPassword, authToken: this.authToken });
 
@@ -85,13 +131,13 @@ class PBTS {
       return { error: 'New password and confirm password should match.' };
     }
 
-    const { error: getKeyError, encryptedPrivateKey } = await this.getKey({ handlename, password: oldPassword });
+    const { error: getKeyError, response } = await this.getKey({ password: oldPassword });
 
     if (getKeyError) {
       return { error: getKeyError };
     }
 
-    const { error: decryptError, privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
+    const { error: decryptError, privateKey } = await decryptKey({ encryptedPrivateKey: response, password: oldPassword });
 
     if (decryptError) {
       return { error: decryptError };
@@ -99,7 +145,11 @@ class PBTS {
 
     const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
 
-    const { error: err } = await updatePasswordAndPrivateKey({ password: newPassword, encryptedPrivateKey: newEncryptedPrivateKey, authToken: this.authToken });
+    const { error: err } = await updatePasswordAndPrivateKey({
+      password: newPassword,
+      encryptedPrivateKey: newEncryptedPrivateKey,
+      authToken: this.authToken,
+    });
 
     if (err) {
       return { error: err };
@@ -107,6 +157,40 @@ class PBTS {
 
     return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
   }
+
+  async resetPassword({
+    privateKey, seedPhrase, encryptedJson, walletPassword, newPassword,
+  }) {
+    const { error, response } = await extractPrivateKey({
+      privateKey, seedPhrase, encryptedJson, password: walletPassword,
+    });
+
+    if (error) {
+      return { error };
+    }
+
+    const { error: err } = await verifyPublicAddress({ address: response.publicAddress, authToken: this.authToken });
+
+    if (err) {
+      return { error: err };
+    }
+
+    const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
+
+    const { error: errors } = await updatePasswordAndPrivateKey({
+      password: newPassword,
+      encryptedPrivateKey: newEncryptedPrivateKey,
+      authToken: this.authToken,
+    });
+
+    if (err) {
+      return { error: errors };
+    }
+
+    return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
+  }
 }
 
-module.exports = { PBTS, createWallet, importFromMnemonic };
+module.exports = {
+  PBTS, createWallet, importFromMnemonic, importFromEncryptedJson,
+};
