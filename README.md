@@ -87,6 +87,28 @@ AND
 `newPassword` - New password.
 
 
+> Sign Transaction
+
+This method can be used to sign a transaction using the user's private key. The transaction can be done using the provider as infura by inputting the infura key or the RPC URL.
+
+```const signTx = txSign.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
+
+`privateKey` - The private key of the user's wallet.
+`infuraKey` - The infura project key to initialize the Infura web3 provider.
+OR
+`rpcUrl` - RPC URL to initialize the web3 provider.
+`rawTx` - The raw transaction object.
+
+The `rawTx` object contains,
+`to` - Address to send the transaction to.
+`from` - Address of the sender.
+`gasPrice` - Price of gas in wei.
+`gasLimit` - Gas Limit for the transaction.
+`nonce` - Nonce of the sender address.
+`value` - Amount to be sent in the transaction.
+`data` - Data to be passed in the transaction. Can be a contract call data.
+
+
 > **NOTE - Below methods doesn't need constructor initialization.**
 
 
