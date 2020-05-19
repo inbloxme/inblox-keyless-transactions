@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm-run-all --silent test-*",
     "test-audit": "npm audit ---audit-level=high",
-    "test-lint": "eslint ./*.js ./config ./utils '*.js'"
+    "test-lint": "eslint ./*.js ./config ./utils"
   },
   "author": "ARJUN SASIKUMAR",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "axios": "^0.19.2",
     "crypto-js": "^4.0.0",
     "ethereumjs-tx": "^2.1.2",
+    "ethers": "^4.0.47",
     "web3": "^1.2.6"
   },
   "devDependencies": {
