@@ -1,9 +1,28 @@
 const cryptojs = require('crypto-js');
+const { Wallet } = require('ethers');
 
 const {
   getRequest, postRequest, generateToken, sendTransaction,
 } = require('./utils/helper');
 const { AUTH_SERVICE_URL } = require('./config');
+
+async function createWallet() {
+  const wallet = Wallet.createRandom();
+  const { privateKey, address, mnemonic } = wallet;
+
+  return {
+    publicAddress: address, privateKey, mnemonic, wallet,
+  };
+}
+
+async function importFromMnemonic(mnemonic) {
+  const wallet = Wallet.fromMnemonic(mnemonic);
+  const { privateKey, address } = wallet;
+
+  return {
+    publicAddress: address, privateKey, mnemonic, wallet,
+  };
+}
 
 class PBTS {
   constructor(authToken) {
@@ -67,4 +86,4 @@ class PBTS {
   }
 }
 
-module.exports = { PBTS };
+module.exports = { PBTS, createWallet, importFromMnemonic };
