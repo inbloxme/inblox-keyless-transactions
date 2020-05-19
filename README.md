@@ -35,10 +35,11 @@ Import the package into your project using,
 Initialise the constructor using,
 
 ```const txSign = new inblox.PBTS(authenticationToken);```
-
+\
+\
 > ***NOTE - Wallet generation and recover methods do not require constructor initialization.***
-
-
+\
+\
 > Encryption & Storage
 
 This method is used to store the private key after encrypting it with the user's password.
