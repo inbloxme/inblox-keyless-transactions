@@ -36,7 +36,7 @@ Initialise the constructor using,
 
 ```const txSign = new inblox.PBTS(authenticationToken);```
 
-> **NOTE - Wallet generation and recover methods do not require constructor initialization.**
+> ***NOTE - Wallet generation and recover methods do not require constructor initialization.***
 
 
 > Encryption & Storage
