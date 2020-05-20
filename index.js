@@ -210,6 +210,4 @@ class PBTS {
   }
 }
 
-module.exports = {
-  PBTS,
-};
+module.exports = { PBTS };
