@@ -14,53 +14,72 @@ const {
   verifyPublicAddress,
 } = require('./utils/helper');
 
+let seeds;
+let firstNumber;
+let secondNumber;
+
 const { AUTH_SERVICE_URL } = require('./config');
-
-async function createWallet() {
-  const wallet = Wallet.createRandom();
-  const { privateKey, address, mnemonic } = wallet;
-
-  return {
-    response: {
-      publicAddress: address, privateKey, mnemonic, wallet,
-    },
-  };
-}
-
-async function importFromMnemonic(mnemonic) {
-  try {
-    const wallet = Wallet.fromMnemonic(mnemonic);
-    const { privateKey, address } = wallet;
-
-    return {
-      response: {
-        publicAddress: address, privateKey, mnemonic, wallet,
-      },
-    };
-  } catch (error) {
-    return { error: 'Invalid Mnemonic.' };
-  }
-}
-
-async function importFromEncryptedJson(jsonData, password) {
-  const json = JSON.stringify(jsonData);
-
-  try {
-    const wallet = await Wallet.fromEncryptedJson(json, password);
-
-    const { address, privateKey } = wallet;
-
-    return {
-      response: { publicAddress: address, privateKey, wallet },
-    };
-  } catch (error) {
-    return { error: 'Wrong password.' };
-  }
-}
 
 class PBTS {
   constructor(authToken) {
     this.authToken = authToken;
+  }
+
+  async createWallet() {
+    const wallet = Wallet.createRandom();
+
+    const seedString = wallet.mnemonic;
+
+    seeds = seedString.split(' ');
+
+    return {
+      response: { wallet },
+    };
+  }
+
+  async importFromMnemonic(mnemonic) {
+    try {
+      const wallet = Wallet.fromMnemonic(mnemonic);
+
+      return {
+        response: { wallet },
+      };
+    } catch (error) {
+      return { error: 'Invalid Mnemonic.' };
+    }
+  }
+
+  async importFromEncryptedJson(jsonData, password) {
+    const json = JSON.stringify(jsonData);
+
+    try {
+      const wallet = await Wallet.fromEncryptedJson(json, password);
+
+      return {
+        response: { wallet },
+      };
+    } catch (error) {
+      return { error: 'Wrong password.' };
+    }
+  }
+
+  async generateRandomNumber() {
+    firstNumber = Math.floor(Math.random() * 11 + 1);
+    secondNumber = Math.floor(Math.random() * 11 + 1);
+
+    while (secondNumber === firstNumber) {
+      secondNumber = Math.floor(Math.random() * 11 + 1);
+    }
+
+    return { response: { firstNumber, secondNumber } };
+  }
+
+  async validateSeeds({ firstWord, secondWord }) {
+    if (firstWord === seeds[firstNumber - 1] && secondWord === seeds[secondNumber - 1]) {
+      return { response: true };
+    }
+
+    return { response: false };
   }
 
   async storeKey({ privateKey, password }) {
@@ -192,5 +211,5 @@ class PBTS {
 }
 
 module.exports = {
-  PBTS, createWallet, importFromMnemonic, importFromEncryptedJson,
+  PBTS,
 };
