@@ -76,10 +76,10 @@ class PBTS {
 
   async validateSeeds({ firstWord, secondWord }) {
     if (firstWord === seeds[firstNumber - 1] && secondWord === seeds[secondNumber - 1]) {
-      return true;
+      return { response: true };
     }
 
-    return false;
+    return { response: false };
   }
 
   async storeKey({ privateKey, password }) {
