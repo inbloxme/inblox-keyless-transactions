@@ -27,16 +27,14 @@ Install the package by running the command,
 
 Import the package into your project using,
 
-```const inblox = require('@inbloxme/password-based-tx-sign');```
+```const inbloxPackage= require('@inbloxme/password-based-tx-sign');```
 
 
 > Initialising
 
 Initialise the constructor using,
 
-```const txSign = new inblox.PBTS(authenticationToken);```
-
-> **NOTE - Wallet generation and recover methods do not require constructor initialization.**
+```const inblox = new inbloxPackage.PBTS(authenticationToken);```
 
 
 > Encryption & Storage
@@ -44,7 +42,7 @@ Initialise the constructor using,
 This method is used to store the private key after encrypting it with the user's password.
 The password of the user gets validated first before encrypting the private key and storing it in the Inblox Key Management System (KMS).
 
-```const StoreKey = txSign.storeKey({ privateKey, password });```
+```const StoreKey = inblox.storeKey({ privateKey, password });```
 
 `privateKey` - The private key to be encrypted and stored in the Inblox Key Management System.
 `password` - The Inblox password of the user. This password is used to encrypt the private key.
@@ -54,7 +52,7 @@ The password of the user gets validated first before encrypting the private key 
 
 This method is used to get the encrypted private key from Inblox KMS.
 
-```const EncryptedPrivateKey = txSign.getKey({ password });```
+```const EncryptedPrivateKey = inblox.getKey({ password });```
 
 `password` - The Inblox password of the user. This will be used to decrypt the encrypted private key at the client side.
 
@@ -63,7 +61,7 @@ This method is used to get the encrypted private key from Inblox KMS.
 
 This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the Inblox KMS.
 
-```const changePassword = txSign.changePassword({ oldPassword, newPassword, confirmPassword });```
+```const changePassword = inblox.changePassword({ oldPassword, newPassword, confirmPassword });```
 
 `oldPassword` - The old password of the user.
 `newPassword` - The new password of the user.
@@ -74,7 +72,7 @@ This method is used to change the existing password of a user. The old password 
 
 This method is used to reset the password incase the user forgets thir existing password. The user will have to prove their ownership for their private key before re-encrypting their private key with their new password. This can be done by providing either their private key directly or the 12 word seed phrase or their keystore file with its password. The private key and public address will get extracted which will be used to verify against the public address stored with the Inblox systems.
 
-```const resetPassword = txSign.resetPassword({ privateKey, seedphrase, encryptedJson, walletPassword, newPassword, });```
+```const resetPassword = inblox.resetPassword({ privateKey, seedphrase, encryptedJson, walletPassword, newPassword, });```
 
 `privateKey` - The private key of the user's wallet.
 OR
@@ -91,7 +89,7 @@ AND
 
 This method can be used to sign a transaction using the user's private key. The transaction can be done using the provider as infura by inputting the infura key or the RPC URL.
 
-```const signTx = txSign.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
+```const signTx = inblox.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
 
 `privateKey` - The private key of the user's wallet.
 `infuraKey` - The infura project key to initialize the Infura web3 provider.
@@ -107,9 +105,6 @@ The `rawTx` object contains,
 `nonce` - Nonce of the sender address.
 `value` - Amount to be sent in the transaction.
 `data` - Data to be passed in the transaction. Can be a contract call data.
-
-
-> **NOTE - Below methods doesn't need constructor initialization.**
 
 
 > Generate New Wallet
@@ -136,6 +131,23 @@ This method is used to import an Ethereum wallet from it's keystore file.
 
 `json` - Keystore JSON of the wallet.
 `passphrase` - Keystore password.
+
+
+> Generate 2 Random Numbers
+
+This method is used to generate 2 random numbers so that it can be used to validate the user's seed phrase by asking them to provide the word corresponding to that number.
+
+```const wallet = inblox.generateRandomNumber();```
+
+
+> Validate Seed Phrase
+
+This method is used to validate the user's seed phrase by asking them to provide the words corresponding to the 2 numbers generated above.
+
+```const wallet = inblox.validateSeeds({ firstWord, secondWord });```
+
+`firstWord` - Word corresponding to the first number.
+`secondWord` - Word corresponding to the second number.
 
 
 > **Note - For all the methods, errors are returned under `error` key and success is returned under `response` key.**
