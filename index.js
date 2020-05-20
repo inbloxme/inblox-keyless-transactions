@@ -74,7 +74,7 @@ class PBTS {
     return { response: { firstNumber, secondNumber } };
   }
 
-  async verifySeeds({ firstWord, secondWord }) {
+  async validateSeeds({ firstWord, secondWord }) {
     if (firstWord === seeds[firstNumber - 1] && secondWord === seeds[secondNumber - 1]) {
       return true;
     }
