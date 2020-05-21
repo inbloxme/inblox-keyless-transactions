@@ -125,6 +125,16 @@ class PBTS {
     return { error: 'Error occured. Please try again.' };
   }
 
+  async decrypt(encryptedPrivateKey, password) {
+    const { error, privateKey } = await decryptKey({ encryptedPrivateKey, password });
+
+    if (error) {
+      return { error };
+    }
+
+    return { response: privateKey };
+  }
+
   async signKey({
     privateKey, infuraKey, rpcUrl, rawTx,
   }) {

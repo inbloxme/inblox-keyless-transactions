@@ -57,6 +57,16 @@ This method is used to get the encrypted private key from Inblox KMS.
 `password` - The Inblox password of the user. This will be used to decrypt the encrypted private key at the client side.
 
 
+> Decrypt Private Key
+
+This method is used to decrypt an encrypted private key.
+
+```const wallet = inblox.decrypt(encryptedPrivateKey, password);```
+
+`encryptedPrivateKey` - Encrypted private key.
+`password` - Password to decrypt.
+
+
 > Change Password
 
 This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the Inblox KMS.
