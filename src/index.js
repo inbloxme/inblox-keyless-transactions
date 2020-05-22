@@ -2,6 +2,9 @@
 const { Wallet } = require('ethers');
 
 const {
+  WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS,
+} = require('./constants/response');
+const {
   getRequestWithAccessToken,
   postRequest,
   getAccessToken,
@@ -18,7 +21,7 @@ let seeds;
 let firstNumber;
 let secondNumber;
 
-const { AUTH_SERVICE_URL } = require('./config');
+const { AUTH_SERVICE_URL } = require('./constants/config');
 
 class PBTS {
   constructor(authToken) {
@@ -45,7 +48,7 @@ class PBTS {
         response: { wallet },
       };
     } catch (error) {
-      return { error: 'Invalid Mnemonic.' };
+      return { error: INVALID_MNEMONIC };
     }
   }
 
@@ -59,7 +62,7 @@ class PBTS {
         response: { wallet },
       };
     } catch (error) {
-      return { error: 'Wrong password.' };
+      return { error: WRONG_PASSWORD };
     }
   }
 
@@ -116,13 +119,17 @@ class PBTS {
       return { error: err };
     }
 
-    const { data } = await getRequestWithAccessToken({ url: `${AUTH_SERVICE_URL}/auth/private-key`, authToken: this.authToken, accessToken });
+    const { data, error: getAccessTokenError } = await getRequestWithAccessToken({
+      url: `${AUTH_SERVICE_URL}/auth/private-key`,
+      authToken: this.authToken,
+      accessToken,
+    });
 
     if (data) {
       return { response: data.data.encryptedPrivateKey };
     }
 
-    return { error: 'Error occured. Please try again.' };
+    return { error: getAccessTokenError };
   }
 
   async signKey({
@@ -147,7 +154,7 @@ class PBTS {
     if (error) {
       return { error };
     } if (newPassword !== confirmPassword) {
-      return { error: 'New password and confirm password should match.' };
+      return { error: PASSWORD_MATCH_ERROR };
     }
 
     const { error: getKeyError, response } = await this.getKey({ password: oldPassword });
@@ -174,7 +181,7 @@ class PBTS {
       return { error: err };
     }
 
-    return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
+    return { response: PASSWORD_CHANGE_SUCCESS };
   }
 
   async resetPassword({
@@ -206,10 +213,8 @@ class PBTS {
       return { error: errors };
     }
 
-    return { response: 'Password changed and private key has been encrypted with new password and stored successfully.' };
+    return { response: PASSWORD_CHANGE_SUCCESS };
   }
 }
 
-module.exports = {
-  PBTS,
-};
+module.exports = { PBTS };
