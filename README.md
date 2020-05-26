@@ -27,14 +27,14 @@ Install the package by running the command,
 
 Import the package into your project using,
 
-```const inbloxPackage= require('@inbloxme/password-based-tx-sign');```
+```const inblox = require('@inbloxme/password-based-tx-sign');```
 
 
 > Initialising
 
 Initialise the constructor using,
 
-```const inblox = new inbloxPackage.PBTS(authenticationToken);```
+```const PBTS = new inbloxPackage.PBTS(authenticationToken);```
 
 
 > Encryption & Storage
@@ -42,7 +42,7 @@ Initialise the constructor using,
 This method is used to store the private key after encrypting it with the user's password.
 The password of the user gets validated first before encrypting the private key and storing it in the Inblox Key Management System (KMS).
 
-```const StoreKey = inblox.storeKey({ privateKey, password });```
+```const StoreKey = PBTS.storeKey({ privateKey, password });```
 
 `privateKey` - The private key to be encrypted and stored in the Inblox Key Management System.
 `password` - The Inblox password of the user. This password is used to encrypt the private key.
@@ -52,7 +52,7 @@ The password of the user gets validated first before encrypting the private key 
 
 This method is used to get the encrypted private key from Inblox KMS.
 
-```const EncryptedPrivateKey = inblox.getKey({ password });```
+```const EncryptedPrivateKey = PBTS.getKey({ password });```
 
 `password` - The Inblox password of the user. This will be used to decrypt the encrypted private key at the client side.
 
@@ -61,7 +61,7 @@ This method is used to get the encrypted private key from Inblox KMS.
 
 This method is used to decrypt an encrypted private key.
 
-```const wallet = inblox.decrypt(encryptedPrivateKey, password);```
+```const wallet = PBTS.decrypt(encryptedPrivateKey, password);```
 
 `encryptedPrivateKey` - Encrypted private key.
 `password` - Password to decrypt.
@@ -71,7 +71,7 @@ This method is used to decrypt an encrypted private key.
 
 This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the Inblox KMS.
 
-```const changePassword = inblox.changePassword({ oldPassword, newPassword, confirmPassword });```
+```const changePassword = PBTS.changePassword({ oldPassword, newPassword, confirmPassword });```
 
 `oldPassword` - The old password of the user.
 `newPassword` - The new password of the user.
@@ -82,7 +82,7 @@ This method is used to change the existing password of a user. The old password 
 
 This method is used to reset the password incase the user forgets thir existing password. The user will have to prove their ownership for their private key before re-encrypting their private key with their new password. This can be done by providing either their private key directly or the 12 word seed phrase or their keystore file with its password. The private key and public address will get extracted which will be used to verify against the public address stored with the Inblox systems.
 
-```const resetPassword = inblox.resetPassword({ privateKey, seedphrase, encryptedJson, walletPassword, newPassword, });```
+```const resetPassword = PBTS.resetPassword({ privateKey, seedphrase, encryptedJson, walletPassword, newPassword, });```
 
 `privateKey` - The private key of the user's wallet.
 OR
@@ -99,7 +99,7 @@ AND
 
 This method can be used to sign a transaction using the user's private key. The transaction can be done using the provider as infura by inputting the infura key or the RPC URL.
 
-```const signTx = inblox.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
+```const signTx = PBTS.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
 
 `privateKey` - The private key of the user's wallet.
 `infuraKey` - The infura project key to initialize the Infura web3 provider.
@@ -121,14 +121,14 @@ The `rawTx` object contains,
 
 This method is used to generate a new Ethereum wallet.
 
-```const newWallet = inblox.createWallet();```
+```const newWallet = PBTS.createWallet();```
 
 
 > Import Wallet From Mnemonic
 
 This method is used to import an Ethereum wallet from it's 12 word mnemonic phrase.
 
-```const wallet = inblox.importFromMnemonic(mnemonic);```
+```const wallet = PBTS.importFromMnemonic(mnemonic);```
 
 `mnemonic` - 12 word mnemonic phrase.
 
@@ -137,7 +137,7 @@ This method is used to import an Ethereum wallet from it's 12 word mnemonic phra
 
 This method is used to import an Ethereum wallet from it's keystore file.
 
-```const wallet = inblox.importFromEncryptedJson(json, passphrase);```
+```const wallet = PBTS.importFromEncryptedJson(json, passphrase);```
 
 `json` - Keystore JSON of the wallet.
 `passphrase` - Keystore password.
@@ -147,14 +147,14 @@ This method is used to import an Ethereum wallet from it's keystore file.
 
 This method is used to generate 2 random numbers so that it can be used to validate the user's seed phrase by asking them to provide the word corresponding to that number.
 
-```const wallet = inblox.generateRandomNumber();```
+```const wallet = PBTS.generateRandomNumber();```
 
 
 > Validate Seed Phrase
 
 This method is used to validate the user's seed phrase by asking them to provide the words corresponding to the 2 numbers generated above.
 
-```const wallet = inblox.validateSeeds({ firstWord, secondWord });```
+```const wallet = PBTS.validateSeeds({ firstWord, secondWord });```
 
 `firstWord` - Word corresponding to the first number.
 `secondWord` - Word corresponding to the second number.
@@ -164,7 +164,7 @@ This method is used to validate the user's seed phrase by asking them to provide
 
 To use Login Via Inblox method, initialise the constructor using,
 
-```const login = new inbloxPackage.LoginViaInblox(accessToken);```
+```const login = new inblox.LoginViaInblox(accessToken);```
 
 
 > Login Via Inblox

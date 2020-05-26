@@ -1,6 +1,6 @@
 {
   "name": "@inbloxme/password-based-tx-sign",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Package for signing transactions using Inblox password.",
   "main": "src/index.js",
   "scripts": {
