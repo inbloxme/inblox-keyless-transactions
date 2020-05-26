@@ -18,6 +18,10 @@ This package enables usage of inblox handlename infrastructure as a signing mech
 
 ## Installation and Usage
 
+
+##  Password Based Transaction Sign
+
+
 > Installation
 
 Install the package by running the command,
@@ -115,6 +119,9 @@ The `rawTx` object contains,
 `nonce` - Nonce of the sender address.
 `value` - Amount to be sent in the transaction.
 `data` - Data to be passed in the transaction. Can be a contract call data.
+
+
+##  Wallet Generation
 
 
 Initialise the constructor for Wallet generation and wallet import methods using,
