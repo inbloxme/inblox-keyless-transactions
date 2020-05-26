@@ -51,15 +51,6 @@ The password of the user gets validated first before encrypting the private key 
 `privateKey` - The private key to be encrypted and stored in the Inblox Key Management System.
 `password` - The Inblox password of the user. This password is used to encrypt the private key.
 
-    
-> Encrypted Private Key Retrieval
-
-This method is used to get the encrypted private key from Inblox KMS.
-
-```const EncryptedPrivateKey = PBTS.getKey({ password });```
-
-`password` - The Inblox password of the user. This will be used to decrypt the encrypted private key at the client side.
-
 
 > Decrypt Private Key
 
@@ -105,6 +96,7 @@ This method can be used to sign a transaction using the user's private key. The 
 
 ```const signTx = PBTS.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
 
+`password` - The Inblox password of the user.
 `privateKey` - The private key of the user's wallet.
 `infuraKey` - The infura project key to initialize the Infura web3 provider.
 OR
