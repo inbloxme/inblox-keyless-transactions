@@ -56,6 +56,23 @@ async function postRequest({ params, url, authToken }) {
   }
 }
 
+async function postRequestForLoginViaInblox({ params, url, accessToken }) {
+  try {
+    const response = await axios({
+      url,
+      method: 'POST',
+      headers: {
+        access_token: `${accessToken}`,
+      },
+      data: params,
+    });
+
+    return { response: response.data.data };
+  } catch (error) {
+    return { error: error.response.data.details[0] };
+  }
+}
+
 async function getAccessToken({ params, authToken }) {
   try {
     const response = await axios({
@@ -194,6 +211,7 @@ async function verifyPublicAddress({ address, authToken }) {
 module.exports = {
   getRequestWithAccessToken,
   postRequest,
+  postRequestForLoginViaInblox,
   getAccessToken,
   sendTransaction,
   encryptKey,

@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 const { Wallet } = require('ethers');
 
@@ -15,6 +16,7 @@ const {
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
+  postRequestForLoginViaInblox,
 } = require('./utils/helper');
 
 let seeds;
@@ -217,4 +219,23 @@ class PBTS {
   }
 }
 
-module.exports = { PBTS };
+class LoginViaInblox {
+  constructor(accessToken) {
+    this.accessToken = accessToken;
+  }
+
+  async getAuthToken({ userName, password }) {
+    const url = `${AUTH_SERVICE_URL}/auth/login`;
+    const params = { userName, password };
+
+    const { error, response } = await postRequestForLoginViaInblox({ url, params, accessToken: this.accessToken });
+
+    if (error) {
+      return { error };
+    }
+
+    return { response: response.token };
+  }
+}
+
+module.exports = { PBTS, LoginViaInblox };
