@@ -19,9 +19,6 @@ This package enables usage of inblox handlename infrastructure as a signing mech
 ## Installation and Usage
 
 
-##  Password Based Transaction Sign
-
-
 > Installation
 
 Install the package by running the command,
@@ -32,6 +29,9 @@ Install the package by running the command,
 Import the package into your project using,
 
 ```const inblox = require('@inbloxme/password-based-tx-sign');```
+
+
+##  Password Based Transaction Sign
 
 
 > Initialising
@@ -124,6 +124,8 @@ The `rawTx` object contains,
 ##  Wallet Generation
 
 
+> Initialising
+
 Initialise the constructor for Wallet generation and wallet import methods using,
 
 ```const Wallet = new inblox.InbloxWallet();```
@@ -173,6 +175,9 @@ This method is used to validate the user's seed phrase by asking them to provide
 
 
 ##  Login Via Inblox
+
+
+> Initialising
 
 To use Login Via Inblox method, initialise the constructor using,
 
