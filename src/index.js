@@ -86,40 +86,40 @@ class PBTS {
   }
 
   async storeKey({ privateKey, password }) {
-    const { error } = await validatePassword({ password, authToken: this.authToken });
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
 
-    if (error) {
-      return { error };
+    if (VALIDATE_PASSWORD_ERROR) {
+      return { VALIDATE_PASSWORD_ERROR };
     }
 
     const encryptedPrivateKey = await encryptKey({ privateKey, password });
 
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
-    const { response, error: err } = await postRequest({
+    const { response, error: STORE_KEY_ERROR } = await postRequest({
       params: { encryptedPrivateKey }, url, authToken: this.authToken,
     });
 
-    if (err) {
-      return { error: err };
+    if (STORE_KEY_ERROR) {
+      return { error: STORE_KEY_ERROR };
     }
 
     return { response };
   }
 
   async getKey({ password }) {
-    const { error } = await validatePassword({ password, authToken: this.authToken });
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
 
-    if (error) {
-      return { error };
+    if (VALIDATE_PASSWORD_ERROR) {
+      return { error: VALIDATE_PASSWORD_ERROR };
     }
 
-    const { error: err, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
 
-    if (err) {
-      return { error: err };
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { data, error: getAccessTokenError } = await getRequestWithAccessToken({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -129,18 +129,18 @@ class PBTS {
       return { response: data.data.encryptedPrivateKey };
     }
 
-    return { error: getAccessTokenError };
+    return { error: GET_ENCRYPTED_PRIVATE_KEY };
   }
 
   async signKey({
     privateKey, infuraKey, rpcUrl, rawTx,
   }) {
-    const { response, error } = await sendTransaction({
+    const { response, error: SEND_TX_ERROR } = await sendTransaction({
       privateKey, rawTx, infuraKey, rpcUrl,
     });
 
-    if (error) {
-      return { error };
+    if (SEND_TX_ERROR) {
+      return { error: SEND_TX_ERROR };
     }
 
     return { response };
@@ -149,36 +149,36 @@ class PBTS {
   async changePassword({
     oldPassword, newPassword, confirmPassword,
   }) {
-    const { error } = await validatePassword({ password: oldPassword, authToken: this.authToken });
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password: oldPassword, authToken: this.authToken });
 
-    if (error) {
-      return { error };
+    if (VALIDATE_PASSWORD_ERROR) {
+      return { error: VALIDATE_PASSWORD_ERROR };
     } if (newPassword !== confirmPassword) {
       return { error: PASSWORD_MATCH_ERROR };
     }
 
-    const { error: getKeyError, response } = await this.getKey({ password: oldPassword });
+    const { error: GET_KEY_ERROR, response } = await this.getKey({ password: oldPassword });
 
-    if (getKeyError) {
-      return { error: getKeyError };
+    if (GET_KEY_ERROR) {
+      return { error: GET_KEY_ERROR };
     }
 
-    const { error: decryptError, privateKey } = await decryptKey({ encryptedPrivateKey: response, password: oldPassword });
+    const { error: DECRYPT_KEY_ERROR, privateKey } = await decryptKey({ encryptedPrivateKey: response, password: oldPassword });
 
-    if (decryptError) {
-      return { error: decryptError };
+    if (DECRYPT_KEY_ERROR) {
+      return { error: DECRYPT_KEY_ERROR };
     }
 
     const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
 
-    const { error: err } = await updatePasswordAndPrivateKey({
+    const { error: UPDATE_PASSWORD_ERROR } = await updatePasswordAndPrivateKey({
       password: newPassword,
       encryptedPrivateKey: newEncryptedPrivateKey,
       authToken: this.authToken,
     });
 
-    if (err) {
-      return { error: err };
+    if (UPDATE_PASSWORD_ERROR) {
+      return { error: UPDATE_PASSWORD_ERROR };
     }
 
     return { response: PASSWORD_CHANGE_SUCCESS };
@@ -187,30 +187,30 @@ class PBTS {
   async resetPassword({
     privateKey, seedPhrase, encryptedJson, walletPassword, newPassword,
   }) {
-    const { error, response } = await extractPrivateKey({
+    const { error: PRIVATE_KEY_ERROR, response } = await extractPrivateKey({
       privateKey, seedPhrase, encryptedJson, password: walletPassword,
     });
 
-    if (error) {
-      return { error };
+    if (PRIVATE_KEY_ERROR) {
+      return { error: PRIVATE_KEY_ERROR };
     }
 
-    const { error: err } = await verifyPublicAddress({ address: response.publicAddress, authToken: this.authToken });
+    const { error: VERIFY_PUBLIC_ADDRESS_ERROR } = await verifyPublicAddress({ address: response.publicAddress, authToken: this.authToken });
 
-    if (err) {
-      return { error: err };
+    if (VERIFY_PUBLIC_ADDRESS_ERROR) {
+      return { error: VERIFY_PUBLIC_ADDRESS_ERROR };
     }
 
     const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
 
-    const { error: errors } = await updatePasswordAndPrivateKey({
+    const { error: UPDATE_PASSWORD_ERROR } = await updatePasswordAndPrivateKey({
       password: newPassword,
       encryptedPrivateKey: newEncryptedPrivateKey,
       authToken: this.authToken,
     });
 
-    if (err) {
-      return { error: errors };
+    if (UPDATE_PASSWORD_ERROR) {
+      return { error: UPDATE_PASSWORD_ERROR };
     }
 
     return { response: PASSWORD_CHANGE_SUCCESS };
