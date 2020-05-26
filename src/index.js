@@ -21,7 +21,7 @@ let seeds;
 let firstNumber;
 let secondNumber;
 
-const { AUTH_SERVICE_URL } = require('./constants/config');
+const { AUTH_SERVICE_URL } = require('./config');
 
 class PBTS {
   constructor(authToken) {
