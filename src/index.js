@@ -6,9 +6,7 @@ const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS,
 } = require('./constants/response');
 const {
-  getRequestWithAccessToken,
   postRequest,
-  getAccessToken,
   sendTransaction,
   encryptKey,
   decryptKey,
@@ -17,6 +15,7 @@ const {
   extractPrivateKey,
   verifyPublicAddress,
   postRequestForLoginViaInblox,
+  getKey,
 } = require('./utils/helper');
 
 let seeds;
@@ -51,35 +50,21 @@ class PBTS {
     return { response };
   }
 
-  async getKey({ password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
-
-    if (VALIDATE_PASSWORD_ERROR) {
-      return { error: VALIDATE_PASSWORD_ERROR };
-    }
-
-    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
-
-    if (GET_ACCESS_TOKEN_ERROR) {
-      return { error: GET_ACCESS_TOKEN_ERROR };
-    }
-
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
-      url: `${AUTH_SERVICE_URL}/auth/private-key`,
-      authToken: this.authToken,
-      accessToken,
-    });
-
-    if (data) {
-      return { response: data.data.encryptedPrivateKey };
-    }
-
-    return { error: GET_ENCRYPTED_PRIVATE_KEY };
-  }
-
   async signKey({
-    privateKey, infuraKey, rpcUrl, rawTx,
+    password, infuraKey, rpcUrl, rawTx,
   }) {
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getKey({ password, authToken: this.authToken });
+
+    if (GET_KEY_ERROR) {
+      return { error: GET_KEY_ERROR };
+    }
+
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password });
+
+    if (DECRYPT_KEY_ERROR) {
+      return { error: DECRYPT_KEY_ERROR };
+    }
+
     const { response, error: SEND_TX_ERROR } = await sendTransaction({
       privateKey, rawTx, infuraKey, rpcUrl,
     });
@@ -94,27 +79,23 @@ class PBTS {
   async changePassword({
     oldPassword, newPassword, confirmPassword,
   }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password: oldPassword, authToken: this.authToken });
-
-    if (VALIDATE_PASSWORD_ERROR) {
-      return { error: VALIDATE_PASSWORD_ERROR };
-    } if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       return { error: PASSWORD_MATCH_ERROR };
     }
 
-    const { error: GET_KEY_ERROR, response } = await this.getKey({ password: oldPassword });
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getKey({ password: oldPassword, authToken: this.authToken });
 
     if (GET_KEY_ERROR) {
       return { error: GET_KEY_ERROR };
     }
 
-    const { error: DECRYPT_KEY_ERROR, privateKey } = await decryptKey({ encryptedPrivateKey: response, password: oldPassword });
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
 
     if (DECRYPT_KEY_ERROR) {
       return { error: DECRYPT_KEY_ERROR };
     }
 
-    const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
+    const { response: newEncryptedPrivateKey } = await encryptKey({ privateKey, password: newPassword });
 
     const { error: UPDATE_PASSWORD_ERROR } = await updatePasswordAndPrivateKey({
       password: newPassword,
