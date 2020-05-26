@@ -2,11 +2,11 @@
   "name": "@inbloxme/password-based-tx-sign",
   "version": "1.1.0",
   "description": "Package for signing transactions using Inblox password.",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "npm-run-all --silent test-*",
-    "test-audit": "npm audit --audit-level=high",
-    "test-lint": "eslint ./*.js ./config ./utils"
+    "test-audit": "npm audit --audit-level=moderate",
+    "test-lint": "eslint ./src/**/*.js"
   },
   "author": "ARJUN SASIKUMAR",
   "license": "ISC",
