@@ -34,7 +34,7 @@ Import the package into your project using,
 
 Initialise the constructor using,
 
-```const PBTS = new inbloxPackage.PBTS(authenticationToken);```
+```const PBTS = new inblox.PBTS(authenticationToken);```
 
 
 > Encryption & Storage
@@ -117,18 +117,23 @@ The `rawTx` object contains,
 `data` - Data to be passed in the transaction. Can be a contract call data.
 
 
+Initialise the constructor for Wallet generation and wallet import methods using,
+
+```const Wallet = new inblox.InbloxWallet();```
+
+
 > Generate New Wallet
 
 This method is used to generate a new Ethereum wallet.
 
-```const newWallet = PBTS.createWallet();```
+```const newWallet = Wallet.createWallet();```
 
 
 > Import Wallet From Mnemonic
 
 This method is used to import an Ethereum wallet from it's 12 word mnemonic phrase.
 
-```const wallet = PBTS.importFromMnemonic(mnemonic);```
+```const wallet = Wallet.importFromMnemonic(mnemonic);```
 
 `mnemonic` - 12 word mnemonic phrase.
 
@@ -137,7 +142,7 @@ This method is used to import an Ethereum wallet from it's 12 word mnemonic phra
 
 This method is used to import an Ethereum wallet from it's keystore file.
 
-```const wallet = PBTS.importFromEncryptedJson(json, passphrase);```
+```const wallet = Wallet.importFromEncryptedJson(json, passphrase);```
 
 `json` - Keystore JSON of the wallet.
 `passphrase` - Keystore password.
@@ -147,14 +152,14 @@ This method is used to import an Ethereum wallet from it's keystore file.
 
 This method is used to generate 2 random numbers so that it can be used to validate the user's seed phrase by asking them to provide the word corresponding to that number.
 
-```const wallet = PBTS.generateRandomNumber();```
+```const wallet = Wallet.generateRandomNumber();```
 
 
 > Validate Seed Phrase
 
 This method is used to validate the user's seed phrase by asking them to provide the words corresponding to the 2 numbers generated above.
 
-```const wallet = PBTS.validateSeeds({ firstWord, secondWord });```
+```const wallet = Wallet.validateSeeds({ firstWord, secondWord });```
 
 `firstWord` - Word corresponding to the first number.
 `secondWord` - Word corresponding to the second number.
