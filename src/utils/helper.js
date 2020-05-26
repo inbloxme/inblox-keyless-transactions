@@ -3,7 +3,7 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL } = require('../constants/config');
+const { AUTH_SERVICE_URL, INFURA_KEY } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
@@ -92,16 +92,8 @@ async function getAccessToken({ params, authToken }) {
 
 async function sendTransaction(payload) {
   try {
-    const {
-      privateKey, rawTx, infuraKey, rpcUrl,
-    } = payload;
-    let web3;
-
-    if (infuraKey) {
-      web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${infuraKey}`));
-    } else {
-      web3 = await new Web3(new Web3.providers.HttpProvider(rpcUrl));
-    }
+    const { privateKey, rawTx } = payload;
+    const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
 
     const pkey = Buffer.from(privateKey, 'hex');
     const tx = new Tx(rawTx, { chain: 'ropsten', hardfork: 'petersburg' });
@@ -121,7 +113,7 @@ async function encryptKey({ privateKey, password }) {
   const encryptedPrivateKey = cryptojs.AES.encrypt(privateKey, password);
   const encryptedPrivateKeyString = encryptedPrivateKey.toString();
 
-  return encryptedPrivateKeyString;
+  return { response: encryptedPrivateKeyString };
 }
 
 async function decryptKey({ encryptedPrivateKey, password }) {
@@ -132,7 +124,7 @@ async function decryptKey({ encryptedPrivateKey, password }) {
     return { error: WRONG_PASSWORD };
   }
 
-  return { privateKey };
+  return { response: privateKey };
 }
 
 async function validatePassword({ password, authToken }) {
@@ -208,6 +200,32 @@ async function verifyPublicAddress({ address, authToken }) {
   return { response: data };
 }
 
+async function getEncryptedPrivateKey({ password, authToken }) {
+  const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken });
+
+  if (VALIDATE_PASSWORD_ERROR) {
+    return { error: VALIDATE_PASSWORD_ERROR };
+  }
+
+  const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken });
+
+  if (GET_ACCESS_TOKEN_ERROR) {
+    return { error: GET_ACCESS_TOKEN_ERROR };
+  }
+
+  const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
+    url: `${AUTH_SERVICE_URL}/auth/private-key`,
+    authToken,
+    accessToken,
+  });
+
+  if (data) {
+    return { response: data.data.encryptedPrivateKey };
+  }
+
+  return { error: GET_ENCRYPTED_PRIVATE_KEY };
+}
+
 module.exports = {
   getRequestWithAccessToken,
   postRequest,
@@ -220,4 +238,5 @@ module.exports = {
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
+  getEncryptedPrivateKey,
 };
