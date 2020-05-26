@@ -3,7 +3,8 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL } = require('../config');
+const { AUTH_SERVICE_URL } = require('../constants/config');
+const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -52,6 +53,23 @@ async function postRequest({ params, url, authToken }) {
     return { response: response.data };
   } catch (error) {
     return { error: error.response.data.details };
+  }
+}
+
+async function postRequestForLoginViaInblox({ params, url, accessToken }) {
+  try {
+    const response = await axios({
+      url,
+      method: 'POST',
+      headers: {
+        access_token: `${accessToken}`,
+      },
+      data: params,
+    });
+
+    return { response: response.data.data };
+  } catch (error) {
+    return { error: error.response.data.details[0] };
   }
 }
 
@@ -111,7 +129,7 @@ async function decryptKey({ encryptedPrivateKey, password }) {
   const privateKey = bytes.toString(cryptojs.enc.Utf8);
 
   if (privateKey === '') {
-    return { error: 'Wrong password.' };
+    return { error: WRONG_PASSWORD };
   }
 
   return { privateKey };
@@ -159,7 +177,7 @@ async function extractPrivateKey({
         },
       };
     } catch (error) {
-      return { error: 'Invalid Mnemonic.' };
+      return { error: INVALID_MNEMONIC };
     }
   }
 
@@ -174,7 +192,7 @@ async function extractPrivateKey({
       response: { publicAddress: address, privateKey: pKey },
     };
   } catch (error) {
-    return { error: 'Wrong password.' };
+    return { error: WRONG_PASSWORD };
   }
 }
 
@@ -193,6 +211,7 @@ async function verifyPublicAddress({ address, authToken }) {
 module.exports = {
   getRequestWithAccessToken,
   postRequest,
+  postRequestForLoginViaInblox,
   getAccessToken,
   sendTransaction,
   encryptKey,
