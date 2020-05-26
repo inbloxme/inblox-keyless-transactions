@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 const { Wallet } = require('ethers');
+const localStorage = require('local-storage');
 
 const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS,
@@ -15,7 +16,7 @@ const {
   extractPrivateKey,
   verifyPublicAddress,
   postRequestForLoginViaInblox,
-  getKey,
+  getEncryptedPrivateKey,
 } = require('./utils/helper');
 
 let seeds;
@@ -50,10 +51,10 @@ class PBTS {
     return { response };
   }
 
-  async signKey({
-    password, infuraKey, rpcUrl, rawTx,
+  async signAndSendTx({
+    password, rawTx,
   }) {
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getKey({ password, authToken: this.authToken });
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getEncryptedPrivateKey({ password, authToken: this.authToken });
 
     if (GET_KEY_ERROR) {
       return { error: GET_KEY_ERROR };
@@ -65,9 +66,7 @@ class PBTS {
       return { error: DECRYPT_KEY_ERROR };
     }
 
-    const { response, error: SEND_TX_ERROR } = await sendTransaction({
-      privateKey, rawTx, infuraKey, rpcUrl,
-    });
+    const { response, error: SEND_TX_ERROR } = await sendTransaction({ privateKey, rawTx });
 
     if (SEND_TX_ERROR) {
       return { error: SEND_TX_ERROR };
@@ -83,7 +82,7 @@ class PBTS {
       return { error: PASSWORD_MATCH_ERROR };
     }
 
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getKey({ password: oldPassword, authToken: this.authToken });
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getEncryptedPrivateKey({ password: oldPassword, authToken: this.authToken });
 
     if (GET_KEY_ERROR) {
       return { error: GET_KEY_ERROR };
@@ -148,7 +147,7 @@ class LoginViaInblox {
     this.accessToken = accessToken;
   }
 
-  async getAuthToken({ userName, password }) {
+  async login({ userName, password }) {
     const url = `${AUTH_SERVICE_URL}/auth/login`;
     const params = { userName, password };
 
@@ -158,7 +157,17 @@ class LoginViaInblox {
       return { error };
     }
 
-    return { response: response.token };
+    const { token } = response;
+
+    localStorage.set('token', token);
+
+    return { response: token };
+  }
+
+  async logout() {
+    localStorage.clear();
+
+    return { response: 'User successfully logged out.' };
   }
 }
 
