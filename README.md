@@ -94,13 +94,9 @@ AND
 
 This method can be used to sign a transaction using the user's private key. The transaction can be done using the provider as infura by inputting the infura key or the RPC URL.
 
-```const signTx = PBTS.signKey({ privateKey, infuraKey, rpcUrl, rawTx });```
+```const signTx = PBTS.signAndSendTx({ password, rawTx });```
 
 `password` - The Inblox password of the user.
-`privateKey` - The private key of the user's wallet.
-`infuraKey` - The infura project key to initialize the Infura web3 provider.
-OR
-`rpcUrl` - RPC URL to initialize the web3 provider.
 `rawTx` - The raw transaction object.
 
 The `rawTx` object contains,
@@ -173,17 +169,24 @@ This method is used to validate the user's seed phrase by asking them to provide
 
 To use Login Via Inblox method, initialise the constructor using,
 
-```const login = new inblox.LoginViaInblox(accessToken);```
+```const loginViaInblox = new inblox.LoginViaInblox(accessToken);```
 
 
 > Login Via Inblox
 
 This method is used to generate a Bearer token from the Inblox backend systems which can be used to initiate request to access protected resources.
 
-```const token = login.getAuthToken({ userName, password });```
+```const token = loginViaInblox.login({ userName, password });```
 
 `userName` - The user's handlename or the email id associated with Inblox platform.
 `password` - The Inblox password of the user.
+
+
+> LogOut
+
+This method is used to logout from the Inblox platform.
+
+```const token = loginViaInblox.logout();```
 
 
 > **Note - For all the methods, errors are returned under `error` key and success is returned under `response` key.**
