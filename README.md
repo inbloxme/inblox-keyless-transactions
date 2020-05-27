@@ -23,7 +23,7 @@ This package enables usage of inblox handlename infrastructure as a signing mech
 
 Install the package by running the command,
 
-```npm install @inbloxme/password-based-tx-sign```
+```npm install @inbloxme/inblox-keyless-transactions```
 
 
 Import the package into your project using,
@@ -50,16 +50,6 @@ The password of the user gets validated first before encrypting the private key 
 
 `privateKey` - The private key to be encrypted and stored in the Inblox Key Management System.
 `password` - The Inblox password of the user. This password is used to encrypt the private key.
-
-
-> Decrypt Private Key
-
-This method is used to decrypt an encrypted private key.
-
-```const wallet = PBTS.decrypt(encryptedPrivateKey, password);```
-
-`encryptedPrivateKey` - Encrypted private key.
-`password` - Password to decrypt.
 
 
 > Change Password
