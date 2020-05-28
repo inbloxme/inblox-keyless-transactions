@@ -7,6 +7,7 @@ const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS,
 } = require('./constants/response');
 const {
+  getRequestWithAccessToken,
   postRequest,
   sendTransaction,
   encryptKey,
@@ -16,7 +17,7 @@ const {
   extractPrivateKey,
   verifyPublicAddress,
   postRequestForLoginViaInblox,
-  getEncryptedPrivateKey,
+  getAccessToken,
 } = require('./utils/helper');
 
 let seeds;
@@ -51,10 +52,36 @@ class PBTS {
     return { response };
   }
 
+  async getEncryptedPrivateKey({ password }) {
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
+
+    if (VALIDATE_PASSWORD_ERROR) {
+      return { error: VALIDATE_PASSWORD_ERROR };
+    }
+
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
+    }
+
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
+      url: `${AUTH_SERVICE_URL}/auth/private-key`,
+      authToken: this.authToken,
+      accessToken,
+    });
+
+    if (data) {
+      return { response: data.data.encryptedPrivateKey };
+    }
+
+    return { error: GET_ENCRYPTED_PRIVATE_KEY };
+  }
+
   async signAndSendTx({
     password, rawTx,
   }) {
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getEncryptedPrivateKey({ password, authToken: this.authToken });
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await this.getEncryptedPrivateKey({ password });
 
     if (GET_KEY_ERROR) {
       return { error: GET_KEY_ERROR };
@@ -77,16 +104,10 @@ class PBTS {
   }
 
   async changePassword({
-    oldPassword, newPassword, confirmPassword,
+    encryptedPrivateKey, oldPassword, newPassword, confirmPassword,
   }) {
     if (newPassword !== confirmPassword) {
       return { error: PASSWORD_MATCH_ERROR };
-    }
-
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await getEncryptedPrivateKey({ password: oldPassword, authToken: this.authToken });
-
-    if (GET_KEY_ERROR) {
-      return { error: GET_KEY_ERROR };
     }
 
     const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });

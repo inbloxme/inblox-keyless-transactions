@@ -52,12 +52,22 @@ The password of the user gets validated first before encrypting the private key 
 `password` - The Inblox password of the user. This password is used to encrypt the private key.
 
 
+> Get Encrypted Private Key
+
+This method is used to get the encrypted private key of the user from Inblox Key Management System.
+
+```const encryptedPrivateKey = PBTS.getEncryptedPrivateKey({ password });```
+
+`password` - The password of the user.
+
+
 > Change Password
 
 This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the Inblox KMS.
 
-```const changePassword = PBTS.changePassword({ oldPassword, newPassword, confirmPassword });```
+```const changePassword = PBTS.changePassword({ encryptedPrivateKey, oldPassword, newPassword, confirmPassword });```
 
+`encryptedPrivateKey` - Encrypted private key of the user which is obtained using the method `getEncryptedPrivateKey`.
 `oldPassword` - The old password of the user.
 `newPassword` - The new password of the user.
 `confirmPassword` - Confirm new password.
