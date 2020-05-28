@@ -200,32 +200,6 @@ async function verifyPublicAddress({ address, authToken }) {
   return { response: data };
 }
 
-async function getEncryptedPrivateKey({ password, authToken }) {
-  const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken });
-
-  if (VALIDATE_PASSWORD_ERROR) {
-    return { error: VALIDATE_PASSWORD_ERROR };
-  }
-
-  const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken });
-
-  if (GET_ACCESS_TOKEN_ERROR) {
-    return { error: GET_ACCESS_TOKEN_ERROR };
-  }
-
-  const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
-    url: `${AUTH_SERVICE_URL}/auth/private-key`,
-    authToken,
-    accessToken,
-  });
-
-  if (data) {
-    return { response: data.data.encryptedPrivateKey };
-  }
-
-  return { error: GET_ENCRYPTED_PRIVATE_KEY };
-}
-
 module.exports = {
   getRequestWithAccessToken,
   postRequest,
@@ -238,5 +212,4 @@ module.exports = {
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
-  getEncryptedPrivateKey,
 };
