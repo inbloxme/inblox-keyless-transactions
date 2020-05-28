@@ -37,7 +37,7 @@ class PBTS {
       return { VALIDATE_PASSWORD_ERROR };
     }
 
-    const encryptedPrivateKey = await encryptKey({ privateKey, password });
+    const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
 
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
     const { response, error: STORE_KEY_ERROR } = await postRequest({
@@ -66,7 +66,8 @@ class PBTS {
       return { error: DECRYPT_KEY_ERROR };
     }
 
-    const { response, error: SEND_TX_ERROR } = await sendTransaction({ privateKey, rawTx });
+    const pKey = privateKey.slice(2);
+    const { response, error: SEND_TX_ERROR } = await sendTransaction({ privateKey: pKey, rawTx });
 
     if (SEND_TX_ERROR) {
       return { error: SEND_TX_ERROR };
@@ -126,7 +127,7 @@ class PBTS {
       return { error: VERIFY_PUBLIC_ADDRESS_ERROR };
     }
 
-    const newEncryptedPrivateKey = await encryptKey({ privateKey, password: newPassword });
+    const { response: newEncryptedPrivateKey } = await encryptKey({ privateKey, password: newPassword });
 
     const { error: UPDATE_PASSWORD_ERROR } = await updatePasswordAndPrivateKey({
       password: newPassword,
