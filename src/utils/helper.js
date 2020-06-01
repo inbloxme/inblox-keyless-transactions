@@ -200,6 +200,23 @@ async function verifyPublicAddress({ address, authToken }) {
   return { response: data };
 }
 
+async function deleteRequest({ url, params, authToken }) {
+  try {
+    const response = await axios({
+      url,
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      data: params,
+    });
+
+    return { response: response.data.data };
+  } catch (error) {
+    return { error: error.response.data.details[0] };
+  }
+}
+
 module.exports = {
   getRequestWithAccessToken,
   postRequest,
@@ -212,4 +229,5 @@ module.exports = {
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
+  deleteRequest,
 };

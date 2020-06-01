@@ -28,7 +28,7 @@ Install the package by running the command,
 
 Import the package into your project using,
 
-```const inblox = require('@inbloxme/password-based-tx-sign');```
+```const inblox = require('@inbloxme/inblox-keyless-transactions');```
 
 
 ##  Password Based Transaction Sign
@@ -107,6 +107,15 @@ The `rawTx` object contains,
 `nonce` - Nonce of the sender address.
 `value` - Amount to be sent in the transaction.
 `data` - Data to be passed in the transaction. Can be a contract call data.
+
+
+> Delete Encrypted Private Key
+
+This method is used to delete a user's encypted private key from the Inblox Key Management System after authenticating the user's password.
+
+```const signTx = PBTS.deleteKey({ password });```
+
+`password` - The Inblox password of the user.
 
 
 ##  Wallet Generation
