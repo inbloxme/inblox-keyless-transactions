@@ -7,8 +7,8 @@ const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
 } = require('./constants/response');
 const {
-  getRequestWithAccessToken,
-  postRequest,
+  getRequestWithAccessToken: getRequest,
+  postRequestWithAccessToken: postRequest,
   sendTransaction,
   encryptKey,
   decryptKey,
@@ -41,9 +41,22 @@ class PBTS {
 
     const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
 
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'transaction',
+    });
+
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
+    }
+
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
     const { response, error: STORE_KEY_ERROR } = await postRequest({
-      params: { encryptedPrivateKey }, url, authToken: this.authToken,
+      params: { encryptedPrivateKey },
+      url,
+      authToken: this.authToken,
+      accessToken,
     });
 
     if (STORE_KEY_ERROR) {
@@ -60,13 +73,17 @@ class PBTS {
       return { error: VALIDATE_PASSWORD_ERROR };
     }
 
-    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'transaction',
+    });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -165,9 +182,21 @@ class PBTS {
   }
 
   async deleteKey({ password }) {
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'delete_private_key',
+    });
+
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
+    }
+
     const url = `${AUTH_SERVICE_URL}/auth/encrypted-private-key`;
 
-    const { error: DELETE_ERROR } = await deleteRequest({ url, params: { password }, authToken: this.authToken });
+    const { error: DELETE_ERROR } = await deleteRequest({
+      url, authToken: this.authToken, accessToken,
+    });
 
     if (DELETE_ERROR) {
       return { error: DELETE_ERROR };

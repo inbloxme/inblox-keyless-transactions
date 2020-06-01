@@ -56,6 +56,26 @@ async function postRequest({ params, url, authToken }) {
   }
 }
 
+async function postRequestWithAccessToken({
+  params, url, authToken, accessToken,
+}) {
+  try {
+    const response = await axios({
+      url,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        accessToken,
+      },
+      data: params,
+    });
+
+    return { response: response.data };
+  } catch (error) {
+    return { error: error.response.data.details };
+  }
+}
+
 async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   try {
     const response = await axios({
@@ -73,10 +93,10 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   }
 }
 
-async function getAccessToken({ params, authToken }) {
+async function getAccessToken({ params, authToken, scope }) {
   try {
     const response = await axios({
-      url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
+      url: `${AUTH_SERVICE_URL}/auth/generate-token/?scope=${scope}`,
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authToken}`,
@@ -86,7 +106,7 @@ async function getAccessToken({ params, authToken }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response };
+    return { error: error.response.data.details[0] };
   }
 }
 
@@ -200,15 +220,15 @@ async function verifyPublicAddress({ address, authToken }) {
   return { response: data };
 }
 
-async function deleteRequest({ url, params, authToken }) {
+async function deleteRequest({ url, accessToken, authToken }) {
   try {
     const response = await axios({
       url,
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${authToken}`,
+        accessToken,
       },
-      data: params,
     });
 
     return { response: response.data.data };
@@ -219,7 +239,7 @@ async function deleteRequest({ url, params, authToken }) {
 
 module.exports = {
   getRequestWithAccessToken,
-  postRequest,
+  postRequestWithAccessToken,
   postRequestForLoginViaInblox,
   getAccessToken,
   sendTransaction,
