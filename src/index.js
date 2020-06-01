@@ -4,7 +4,7 @@ const { Wallet } = require('ethers');
 const localStorage = require('local-storage');
 
 const {
-  WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS,
+  WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
 } = require('./constants/response');
 const {
   getRequestWithAccessToken,
@@ -18,6 +18,7 @@ const {
   verifyPublicAddress,
   postRequestForLoginViaInblox,
   getAccessToken,
+  deleteRequest,
 } = require('./utils/helper');
 
 let seeds;
@@ -162,6 +163,18 @@ class PBTS {
 
     return { response: PASSWORD_CHANGE_SUCCESS };
   }
+
+  async deleteKey({ password }) {
+    const url = `${AUTH_SERVICE_URL}/auth/encrypted-private-key`;
+
+    const { error: DELETE_ERROR } = await deleteRequest({ url, params: { password }, authToken: this.authToken });
+
+    if (DELETE_ERROR) {
+      return { error: DELETE_ERROR };
+    }
+
+    return { response: DELETE_SUCCESS };
+  }
 }
 
 class LoginViaInblox {
@@ -189,7 +202,7 @@ class LoginViaInblox {
   async logout() {
     localStorage.clear();
 
-    return { response: 'User successfully logged out.' };
+    return { response: LOGOUT_SUCCESS };
   }
 }
 
