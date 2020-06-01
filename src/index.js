@@ -36,7 +36,7 @@ class PBTS {
     const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
 
     if (VALIDATE_PASSWORD_ERROR) {
-      return { VALIDATE_PASSWORD_ERROR };
+      return { error: VALIDATE_PASSWORD_ERROR };
     }
 
     const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
@@ -60,13 +60,13 @@ class PBTS {
       return { error: VALIDATE_PASSWORD_ERROR };
     }
 
-    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken, scope: 'transaction' });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY_ERROR } = await getRequestWithAccessToken({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -76,7 +76,7 @@ class PBTS {
       return { response: data.data.encryptedPrivateKey };
     }
 
-    return { error: GET_ENCRYPTED_PRIVATE_KEY };
+    return { error: GET_ENCRYPTED_PRIVATE_KEY_ERROR };
   }
 
   async signAndSendTx({
@@ -174,6 +174,22 @@ class PBTS {
     }
 
     return { response: DELETE_SUCCESS };
+  }
+
+  async extractKey({ password }) {
+    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await this.getEncryptedPrivateKey({ password });
+
+    if (GET_KEY_ERROR) {
+      return { error: GET_KEY_ERROR };
+    }
+
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password });
+
+    if (DECRYPT_KEY_ERROR) {
+      return { error: DECRYPT_KEY_ERROR };
+    }
+
+    return { response: privateKey };
   }
 }
 

@@ -118,6 +118,15 @@ This method is used to delete a user's encypted private key from the Inblox Key 
 `password` - The Inblox password of the user.
 
 
+> Extract Private Key
+
+This method is used to get a user's private key from Inbox KMS.
+
+```const signTx = PBTS.extractKey({ password });```
+
+`password` - The Inblox password of the user.
+
+
 ##  Wallet Generation
 
 
