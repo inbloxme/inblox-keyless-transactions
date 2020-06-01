@@ -73,10 +73,10 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   }
 }
 
-async function getAccessToken({ params, authToken }) {
+async function getAccessToken({ params, authToken, scope }) {
   try {
     const response = await axios({
-      url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
+      url: `${AUTH_SERVICE_URL}/auth/generate-token/?scope=${scope}`,
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authToken}`,
