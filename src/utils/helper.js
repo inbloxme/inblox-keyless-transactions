@@ -237,40 +237,6 @@ async function deleteRequest({ url, accessToken, authToken }) {
   }
 }
 
-async function storeKey({ privateKey, password, authToken }) {
-  const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken });
-
-  if (VALIDATE_PASSWORD_ERROR) {
-    return { error: VALIDATE_PASSWORD_ERROR };
-  }
-
-  const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
-
-  const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
-    params: { password },
-    authToken,
-    scope: 'transaction',
-  });
-
-  if (GET_ACCESS_TOKEN_ERROR) {
-    return { error: GET_ACCESS_TOKEN_ERROR };
-  }
-
-  const url = `${AUTH_SERVICE_URL}/auth/private-key`;
-  const { response, error: STORE_KEY_ERROR } = await postRequestWithAccessToken({
-    params: { encryptedPrivateKey },
-    url,
-    authToken,
-    accessToken,
-  });
-
-  if (STORE_KEY_ERROR) {
-    return { error: STORE_KEY_ERROR };
-  }
-
-  return { response };
-}
-
 async function relayTransaction({ publicAddress, privateKey, authToken }) {
   const url = `${RELAYER_SERVICE_URL}/set-handlename`;
 
@@ -296,6 +262,7 @@ async function relayTransaction({ publicAddress, privateKey, authToken }) {
 module.exports = {
   getRequestWithAccessToken,
   postRequestForLoginViaInblox,
+  postRequestWithAccessToken,
   getAccessToken,
   sendTransaction,
   encryptKey,
@@ -305,6 +272,5 @@ module.exports = {
   extractPrivateKey,
   verifyPublicAddress,
   deleteRequest,
-  storeKey,
   relayTransaction,
 };
