@@ -118,6 +118,17 @@ This method is used to delete a user's encypted private key from the Inblox Key 
 `password` - The Inblox password of the user.
 
 
+> Register Handlename
+
+This method is used to register a user's handlename.
+
+```const signTx = PBTS.registerHandlename({ publicAddress, privateKey, password });```
+
+`publicAddress` - Public address of the user.
+`privateKey` - The private key of the address.
+`password` - The Inblox password of the user.
+
+
 ##  Wallet Generation
 
 

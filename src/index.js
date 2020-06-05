@@ -7,8 +7,8 @@ const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
 } = require('./constants/response');
 const {
-  getRequestWithAccessToken,
-  postRequest,
+  getRequestWithAccessToken: getRequest,
+  postRequestWithAccessToken: postRequest,
   sendTransaction,
   encryptKey,
   decryptKey,
@@ -19,6 +19,7 @@ const {
   postRequestForLoginViaInblox,
   getAccessToken,
   deleteRequest,
+  relayTransaction,
 } = require('./utils/helper');
 
 let seeds;
@@ -36,14 +37,27 @@ class PBTS {
     const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
 
     if (VALIDATE_PASSWORD_ERROR) {
-      return { VALIDATE_PASSWORD_ERROR };
+      return { error: VALIDATE_PASSWORD_ERROR };
     }
 
     const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
 
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'transaction',
+    });
+
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
+    }
+
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
     const { response, error: STORE_KEY_ERROR } = await postRequest({
-      params: { encryptedPrivateKey }, url, authToken: this.authToken,
+      params: { encryptedPrivateKey },
+      url,
+      authToken: this.authToken,
+      accessToken,
     });
 
     if (STORE_KEY_ERROR) {
@@ -60,13 +74,17 @@ class PBTS {
       return { error: VALIDATE_PASSWORD_ERROR };
     }
 
-    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({ params: { password }, authToken: this.authToken });
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'transaction',
+    });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequestWithAccessToken({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -165,15 +183,43 @@ class PBTS {
   }
 
   async deleteKey({ password }) {
+    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+      params: { password },
+      authToken: this.authToken,
+      scope: 'delete_private_key',
+    });
+
+    if (GET_ACCESS_TOKEN_ERROR) {
+      return { error: GET_ACCESS_TOKEN_ERROR };
+    }
+
     const url = `${AUTH_SERVICE_URL}/auth/encrypted-private-key`;
 
-    const { error: DELETE_ERROR } = await deleteRequest({ url, params: { password }, authToken: this.authToken });
+    const { error: DELETE_ERROR } = await deleteRequest({
+      url, authToken: this.authToken, accessToken,
+    });
 
     if (DELETE_ERROR) {
       return { error: DELETE_ERROR };
     }
 
     return { response: DELETE_SUCCESS };
+  }
+
+  async registerHandlename({ publicAddress, privateKey, password }) {
+    const { error: STORE_KEY_ERROR } = await this.storeKey({ privateKey, password });
+
+    if (STORE_KEY_ERROR) {
+      return { error: STORE_KEY_ERROR };
+    }
+
+    const { error, response } = await relayTransaction({ publicAddress, privateKey, authToken: this.authToken });
+
+    if (error) {
+      return { error };
+    }
+
+    return { response };
   }
 }
 

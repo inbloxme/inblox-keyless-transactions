@@ -3,8 +3,8 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL, INFURA_KEY } = require('../config');
-const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
+const { AUTH_SERVICE_URL, RELAYER_SERVICE_URL, INFURA_KEY } = require('../config');
+const { WRONG_PASSWORD, INVALID_MNEMONIC, HANDLENAME_REGISTRATION_SUCCESS } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -56,6 +56,26 @@ async function postRequest({ params, url, authToken }) {
   }
 }
 
+async function postRequestWithAccessToken({
+  params, url, authToken, accessToken,
+}) {
+  try {
+    const response = await axios({
+      url,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        accessToken,
+      },
+      data: params,
+    });
+
+    return { response: response.data };
+  } catch (error) {
+    return { error: error.response.data.details };
+  }
+}
+
 async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   try {
     const response = await axios({
@@ -73,10 +93,10 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   }
 }
 
-async function getAccessToken({ params, authToken }) {
+async function getAccessToken({ params, authToken, scope }) {
   try {
     const response = await axios({
-      url: `${AUTH_SERVICE_URL}/auth/transaction-token`,
+      url: `${AUTH_SERVICE_URL}/auth/generate-token/?scope=${scope}`,
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authToken}`,
@@ -86,7 +106,7 @@ async function getAccessToken({ params, authToken }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response };
+    return { error: error.response.data.details[0] };
   }
 }
 
@@ -200,15 +220,15 @@ async function verifyPublicAddress({ address, authToken }) {
   return { response: data };
 }
 
-async function deleteRequest({ url, params, authToken }) {
+async function deleteRequest({ url, accessToken, authToken }) {
   try {
     const response = await axios({
       url,
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${authToken}`,
+        accessToken,
       },
-      data: params,
     });
 
     return { response: response.data.data };
@@ -217,10 +237,32 @@ async function deleteRequest({ url, params, authToken }) {
   }
 }
 
+async function relayTransaction({ publicAddress, privateKey, authToken }) {
+  const url = `${RELAYER_SERVICE_URL}/set-handlename`;
+
+  const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
+
+  const accountObject = web3.eth.accounts.privateKeyToAccount(privateKey);
+  const signedData = accountObject.sign(publicAddress, privateKey);
+
+  const params = {
+    userAdd: publicAddress,
+    signedData,
+  };
+
+  const { error } = await postRequest({ params, url, authToken });
+
+  if (error) {
+    return { error };
+  }
+
+  return { response: HANDLENAME_REGISTRATION_SUCCESS };
+}
+
 module.exports = {
   getRequestWithAccessToken,
-  postRequest,
   postRequestForLoginViaInblox,
+  postRequestWithAccessToken,
   getAccessToken,
   sendTransaction,
   encryptKey,
@@ -230,4 +272,5 @@ module.exports = {
   extractPrivateKey,
   verifyPublicAddress,
   deleteRequest,
+  relayTransaction,
 };
