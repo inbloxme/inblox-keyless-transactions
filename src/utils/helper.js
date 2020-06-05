@@ -3,8 +3,8 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL, INFURA_KEY } = require('../config');
-const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
+const { AUTH_SERVICE_URL, RELAYER_SERVICE_URL, INFURA_KEY } = require('../config');
+const { WRONG_PASSWORD, INVALID_MNEMONIC, HANDLENAME_REGISTRATION_SUCCESS } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -237,9 +237,64 @@ async function deleteRequest({ url, accessToken, authToken }) {
   }
 }
 
+async function storeKey({ privateKey, password, authToken }) {
+  const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken });
+
+  if (VALIDATE_PASSWORD_ERROR) {
+    return { error: VALIDATE_PASSWORD_ERROR };
+  }
+
+  const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
+
+  const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
+    params: { password },
+    authToken,
+    scope: 'transaction',
+  });
+
+  if (GET_ACCESS_TOKEN_ERROR) {
+    return { error: GET_ACCESS_TOKEN_ERROR };
+  }
+
+  const url = `${AUTH_SERVICE_URL}/auth/private-key`;
+  const { response, error: STORE_KEY_ERROR } = await postRequestWithAccessToken({
+    params: { encryptedPrivateKey },
+    url,
+    authToken,
+    accessToken,
+  });
+
+  if (STORE_KEY_ERROR) {
+    return { error: STORE_KEY_ERROR };
+  }
+
+  return { response };
+}
+
+async function relayTransaction({ publicAddress, privateKey, authToken }) {
+  const url = `${RELAYER_SERVICE_URL}/set-handlename`;
+
+  const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
+
+  const accountObject = web3.eth.accounts.privateKeyToAccount(privateKey);
+  const signedData = accountObject.sign(publicAddress, privateKey);
+
+  const params = {
+    userAdd: publicAddress,
+    signedData,
+  };
+
+  const { error } = await postRequest({ params, url, authToken });
+
+  if (error) {
+    return { error };
+  }
+
+  return { response: HANDLENAME_REGISTRATION_SUCCESS };
+}
+
 module.exports = {
   getRequestWithAccessToken,
-  postRequestWithAccessToken,
   postRequestForLoginViaInblox,
   getAccessToken,
   sendTransaction,
@@ -250,4 +305,6 @@ module.exports = {
   extractPrivateKey,
   verifyPublicAddress,
   deleteRequest,
+  storeKey,
+  relayTransaction,
 };

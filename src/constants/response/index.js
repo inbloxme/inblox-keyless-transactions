@@ -5,4 +5,5 @@ module.exports = {
   PASSWORD_CHANGE_SUCCESS: 'New password and encrypted private key has been updated and stored successfully.',
   DELETE_SUCCESS: 'Successfully deleted the encrypted private key.',
   LOGOUT_SUCCESS: 'User has been successfully logged out.',
+  HANDLENAME_REGISTRATION_SUCCESS: 'Handlename registered successfully.',
 };

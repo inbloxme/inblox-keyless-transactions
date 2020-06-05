@@ -8,7 +8,6 @@ const {
 } = require('./constants/response');
 const {
   getRequestWithAccessToken: getRequest,
-  postRequestWithAccessToken: postRequest,
   sendTransaction,
   encryptKey,
   decryptKey,
@@ -19,6 +18,8 @@ const {
   postRequestForLoginViaInblox,
   getAccessToken,
   deleteRequest,
+  storeKey,
+  relayTransaction,
 } = require('./utils/helper');
 
 let seeds;
@@ -30,40 +31,6 @@ const { AUTH_SERVICE_URL } = require('./config');
 class PBTS {
   constructor(authToken) {
     this.authToken = authToken;
-  }
-
-  async storeKey({ privateKey, password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
-
-    if (VALIDATE_PASSWORD_ERROR) {
-      return { VALIDATE_PASSWORD_ERROR };
-    }
-
-    const { response: encryptedPrivateKey } = await encryptKey({ privateKey, password });
-
-    const { error: GET_ACCESS_TOKEN_ERROR, response: accessToken } = await getAccessToken({
-      params: { password },
-      authToken: this.authToken,
-      scope: 'transaction',
-    });
-
-    if (GET_ACCESS_TOKEN_ERROR) {
-      return { error: GET_ACCESS_TOKEN_ERROR };
-    }
-
-    const url = `${AUTH_SERVICE_URL}/auth/private-key`;
-    const { response, error: STORE_KEY_ERROR } = await postRequest({
-      params: { encryptedPrivateKey },
-      url,
-      authToken: this.authToken,
-      accessToken,
-    });
-
-    if (STORE_KEY_ERROR) {
-      return { error: STORE_KEY_ERROR };
-    }
-
-    return { response };
   }
 
   async getEncryptedPrivateKey({ password }) {
@@ -203,6 +170,22 @@ class PBTS {
     }
 
     return { response: DELETE_SUCCESS };
+  }
+
+  async registerHandlename({ publicAddress, privateKey, password }) {
+    const { error: STORE_KEY_ERROR } = await storeKey({ privateKey, password, authToken: this.authToken });
+
+    if (STORE_KEY_ERROR) {
+      return { error: STORE_KEY_ERROR };
+    }
+
+    const { error, response } = await relayTransaction({ publicAddress, privateKey, authToken: this.authToken });
+
+    if (error) {
+      return { error };
+    }
+
+    return { response };
   }
 }
 
