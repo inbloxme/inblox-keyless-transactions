@@ -1,13 +1,32 @@
 
-# Password Based Transaction Signing - Inbloxme
+# Keyless Transactions - Inbloxme
 
   
 
-This package enables usage of inblox handlename infrastructure as a signing mechanism.
+This package enables usage of inblox handlename infrastructure as a keyless signing mechanism.
 
 
 > **Disclaimer - This is WIP, and release in alpha.**
 
+## Keyless Tranasctions
+
+Talking about user adoption, the bottleneck faced by most of the dApps is the user onboarding flow. The user needs to have a wallet, generating and operating a wallet is cumbersome for a new crypto user.
+
+Keyless transactions abstracts the private key from the user and allows the user to sign transaction in an easy way while having the same level of security as before.
+
+Inblox Keyless Transactions allow users to sign transactions via,
+
+1. Password
+2. Biometrics
+  A. Fingerprint
+  B. FaceID
+3. Device based virtual Hardware Security Module
+
+We have made **password based transaction signing** available for anyone to use, build upon and replicate.
+
+This documentation focuses more on that, more coming soon. If you want to know more and enagage with development, you can  email at the address in footnotes.
+
+Happy #BUIDLing
 
 ## Design Principles
 
