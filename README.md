@@ -8,7 +8,7 @@ This package enables usage of inblox handlename infrastructure as a keyless sign
 
 > **Disclaimer - This is WIP, and release in alpha.**
 
-## Keyless Tranasctions
+## Keyless Transactions
 
 Talking about user adoption, the bottleneck faced by most of the dApps is the user onboarding flow. The user needs to have a wallet, generating and operating a wallet is cumbersome for a new crypto user.
 
@@ -42,12 +42,12 @@ Happy #BUIDLing
 
 Install the package by running the command,
 
-```npm install @inbloxme/inblox-keyless-transactions```
+```npm install @inbloxme/keyless-transactions-private```
 
 
 Import the package into your project using,
 
-```const inblox = require('@inbloxme/inblox-keyless-transactions');```
+```const inblox = require('@inbloxme/keyless-transactions-private');```
 
 
 ##  Password Based Transaction Sign
