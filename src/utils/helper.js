@@ -4,7 +4,7 @@ const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 const { AUTH_SERVICE_URL, RELAYER_SERVICE_URL, INFURA_KEY } = require('../config');
-const { WRONG_PASSWORD, INVALID_MNEMONIC, HANDLENAME_REGISTRATION_SUCCESS } = require('../constants/response');
+const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -52,7 +52,7 @@ async function postRequest({ params, url, authToken }) {
 
     return { response: response.data };
   } catch (error) {
-    return { error: error.response.data.details };
+    return { error: error.response.data };
   }
 }
 
@@ -89,7 +89,7 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response.data.details[0] };
+    return { error: error.response.data.details };
   }
 }
 
@@ -106,7 +106,7 @@ async function getAccessToken({ params, authToken, scope }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response.data.details[0] };
+    return { error: error.response.data.details };
   }
 }
 
@@ -152,7 +152,7 @@ async function validatePassword({ password, authToken }) {
   const { response, error } = await postRequest({ params: { password }, url, authToken });
 
   if (error) {
-    return { error: error[0] };
+    return { error };
   }
 
   return { response };
@@ -163,7 +163,7 @@ async function updatePasswordAndPrivateKey({ password, encryptedPrivateKey, auth
   const { response, error } = await postRequest({ params: { password, encryptedPrivateKey }, url, authToken });
 
   if (error) {
-    return { error: error[0] };
+    return { error };
   }
 
   return { response };
@@ -214,7 +214,7 @@ async function verifyPublicAddress({ address, authToken }) {
   const { error, data } = await getRequest({ url, authToken });
 
   if (error) {
-    return { error: error.response.data.details[0] };
+    return { error: error.response.data.details };
   }
 
   return { response: data };
@@ -233,7 +233,7 @@ async function deleteRequest({ url, accessToken, authToken }) {
 
     return { response: response.data.data };
   } catch (error) {
-    return { error: error.response.data.details[0] };
+    return { error: error.response.data.details };
   }
 }
 
@@ -250,13 +250,13 @@ async function relayTransaction({ publicAddress, privateKey, authToken }) {
     signedData,
   };
 
-  const { error } = await postRequest({ params, url, authToken });
+  const { error, response } = await postRequest({ params, url, authToken });
 
   if (error) {
     return { error };
   }
 
-  return { response: HANDLENAME_REGISTRATION_SUCCESS };
+  return { response };
 }
 
 module.exports = {
