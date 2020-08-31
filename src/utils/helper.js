@@ -3,7 +3,7 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL, AUTH_SERVICE_URL, INFURA_KEY } = require('../config');
+const { AUTH_SERVICE_URL, RELAYER_SERVICE_URL, INFURA_KEY } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
@@ -238,7 +238,7 @@ async function deleteRequest({ url, accessToken, authToken }) {
 }
 
 async function relayTransaction({ publicAddress, privateKey, authToken }) {
-  const url = `${AUTH_SERVICE_URL}/handlename-registration`;
+  const url = `${RELAYER_SERVICE_URL}/set-handlename`;
 
   const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
 
