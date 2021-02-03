@@ -1,9 +1,10 @@
+/* eslint-disable no-return-assign */
 const ethers = require('ethers');
 const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { 
+const {
   AUTH_SERVICE_URL_PROD,
   AUTH_SERVICE_URL_DEV,
   AUTH_SERVICE_URL_TEST,
@@ -17,6 +18,16 @@ const {
   RPC_URL_MAINNET,
 } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
+
+async function getBaseUrl(env) {
+  if (env === 'test') {
+    return { auth: AUTH_SERVICE_URL_TEST, relayer: RELAYER_SERVICE_URL_TEST };
+  } if (env === 'dev') {
+    return { auth: AUTH_SERVICE_URL_DEV, relayer: RELAYER_SERVICE_URL_DEV };
+  }
+
+  return { auth: AUTH_SERVICE_URL_PROD, relayer: RELAYER_SERVICE_URL_PROD };
+}
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -105,9 +116,11 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   }
 }
 
-async function getAccessToken({ params, authToken, scope, env }) {
+async function getAccessToken({
+  params, authToken, scope, env,
+}) {
   try {
-    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env)
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
     const response = await axios({
       url: `${AUTH_SERVICE_URL}/auth/generate-token/?scope=${scope}`,
       method: 'POST',
@@ -129,13 +142,13 @@ async function sendTransaction(payload) {
 
     let web3;
 
-    if(network === 'mainnet') {
+    if (network === 'mainnet') {
       web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_MAINNET));
-    } else if(network === 'ropsten') {
+    } else if (network === 'ropsten') {
       web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_ROPSTEN));
-    } else if(network === 'rinkeby') {
+    } else if (network === 'rinkeby') {
       web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_RINKEBY));
-    } else if(network === 'kovan') {
+    } else if (network === 'kovan') {
       web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_KOVAN));
     } else {
       web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_GOERLI));
@@ -185,7 +198,9 @@ async function validatePassword({ password, authToken, env }) {
   return { response };
 }
 
-async function updatePasswordAndPrivateKey({ password, encryptedPrivateKey, authToken, env }) {
+async function updatePasswordAndPrivateKey({
+  password, encryptedPrivateKey, authToken, env,
+}) {
   const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
 
   const url = `${AUTH_SERVICE_URL}/auth/update-credentials`;
@@ -268,21 +283,25 @@ async function deleteRequest({ url, accessToken, authToken }) {
   }
 }
 
-async function relayTransaction({ publicAddress, privateKey, authToken, env }) {
-  
+async function relayTransaction({
+  publicAddress, privateKey, authToken, env,
+}) {
   const { relayer: RELAYER_SERVICE_URL } = await getBaseUrl(env);
 
   const url = `${RELAYER_SERVICE_URL}/set-handlename`;
 
   let web3;
+  let network;
 
-  if(network === 'mainnet') {
+  await web3.eth.net.getNetworkType().then((e) => network = e);
+
+  if (network === 'main') {
     web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_MAINNET));
-  } else if(network === 'ropsten') {
+  } else if (network === 'ropsten') {
     web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_ROPSTEN));
-  } else if(network === 'rinkeby') {
+  } else if (network === 'rinkeby') {
     web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_RINKEBY));
-  } else if(network === 'kovan') {
+  } else if (network === 'kovan') {
     web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_KOVAN));
   } else {
     web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_GOERLI));
@@ -303,15 +322,6 @@ async function relayTransaction({ publicAddress, privateKey, authToken, env }) {
   }
 
   return { response };
-}
-
-async function getBaseUrl(env) {
-  if(env === 'test') {
-    return { auth: AUTH_SERVICE_URL_TEST, relayer: RELAYER_SERVICE_URL_TEST }
-  } else if(env === 'dev') {
-    return { auth: AUTH_SERVICE_URL_DEV, relayer: RELAYER_SERVICE_URL_DEV }
-  }
-  return { auth: AUTH_SERVICE_URL_PROD, relayer: RELAYER_SERVICE_URL_PROD }
 }
 
 module.exports = {

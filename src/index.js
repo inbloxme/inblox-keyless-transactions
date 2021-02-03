@@ -53,7 +53,7 @@ class PBTS {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env)
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
 
@@ -89,7 +89,7 @@ class PBTS {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env)
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
@@ -203,7 +203,7 @@ class PBTS {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
-    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env)
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const url = `${AUTH_SERVICE_URL}/auth/encrypted-private-key`;
 
@@ -225,7 +225,9 @@ class PBTS {
       return { error: STORE_KEY_ERROR };
     }
 
-    const { error, response } = await relayTransaction({ publicAddress, privateKey, authToken: this.authToken, env: this.env });
+    const { error, response } = await relayTransaction({
+      publicAddress, privateKey, authToken: this.authToken, env: this.env,
+    });
 
     if (error) {
       return { error };
@@ -242,8 +244,7 @@ class LoginViaInblox {
   }
 
   async login({ userName, password }) {
-
-    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env)
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const url = `${AUTH_SERVICE_URL}/auth/login`;
     const params = { userName, password };
