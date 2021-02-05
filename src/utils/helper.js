@@ -1,10 +1,33 @@
+/* eslint-disable no-return-assign */
 const ethers = require('ethers');
 const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
-const { AUTH_SERVICE_URL, RELAYER_SERVICE_URL, INFURA_KEY } = require('../config');
+const {
+  AUTH_SERVICE_URL_PROD,
+  AUTH_SERVICE_URL_DEV,
+  AUTH_SERVICE_URL_TEST,
+  RELAYER_SERVICE_URL_PROD,
+  RELAYER_SERVICE_URL_DEV,
+  RELAYER_SERVICE_URL_TEST,
+  RPC_URL_ROPSTEN,
+  RPC_URL_RINKEBY,
+  RPC_URL_KOVAN,
+  RPC_URL_GOERLI,
+  RPC_URL_MAINNET,
+} = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
+
+async function getBaseUrl(env) {
+  if (env === 'test') {
+    return { auth: AUTH_SERVICE_URL_TEST, relayer: RELAYER_SERVICE_URL_TEST };
+  } if (env === 'dev') {
+    return { auth: AUTH_SERVICE_URL_DEV, relayer: RELAYER_SERVICE_URL_DEV };
+  }
+
+  return { auth: AUTH_SERVICE_URL_PROD, relayer: RELAYER_SERVICE_URL_PROD };
+}
 
 async function getRequestWithAccessToken({ url, authToken, accessToken }) {
   try {
@@ -93,8 +116,11 @@ async function postRequestForLoginViaInblox({ params, url, accessToken }) {
   }
 }
 
-async function getAccessToken({ params, authToken, scope }) {
+async function getAccessToken({
+  params, authToken, scope, env,
+}) {
   try {
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
     const response = await axios({
       url: `${AUTH_SERVICE_URL}/auth/generate-token/?scope=${scope}`,
       method: 'POST',
@@ -112,11 +138,24 @@ async function getAccessToken({ params, authToken, scope }) {
 
 async function sendTransaction(payload) {
   try {
-    const { privateKey, rawTx } = payload;
-    const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
+    const { privateKey, rawTx, network } = payload;
+
+    let web3;
+
+    if (network === 'mainnet') {
+      web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_MAINNET));
+    } else if (network === 'ropsten') {
+      web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_ROPSTEN));
+    } else if (network === 'rinkeby') {
+      web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_RINKEBY));
+    } else if (network === 'kovan') {
+      web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_KOVAN));
+    } else {
+      web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_GOERLI));
+    }
 
     const pkey = Buffer.from(privateKey, 'hex');
-    const tx = new Tx(rawTx, { chain: 'ropsten', hardfork: 'petersburg' });
+    const tx = new Tx(rawTx, { chain: network });
 
     tx.sign(pkey);
     const stringTx = `0x${tx.serialize().toString('hex')}`;
@@ -147,7 +186,8 @@ async function decryptKey({ encryptedPrivateKey, password }) {
   return { response: privateKey };
 }
 
-async function validatePassword({ password, authToken }) {
+async function validatePassword({ password, authToken, env }) {
+  const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
   const url = `${AUTH_SERVICE_URL}/auth/authenticate-password`;
   const { response, error } = await postRequest({ params: { password }, url, authToken });
 
@@ -158,7 +198,11 @@ async function validatePassword({ password, authToken }) {
   return { response };
 }
 
-async function updatePasswordAndPrivateKey({ password, encryptedPrivateKey, authToken }) {
+async function updatePasswordAndPrivateKey({
+  password, encryptedPrivateKey, authToken, env,
+}) {
+  const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
+
   const url = `${AUTH_SERVICE_URL}/auth/update-credentials`;
   const { response, error } = await postRequest({ params: { password, encryptedPrivateKey }, url, authToken });
 
@@ -208,7 +252,9 @@ async function extractPrivateKey({
   }
 }
 
-async function verifyPublicAddress({ address, authToken }) {
+async function verifyPublicAddress({ address, authToken, env }) {
+  const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
+
   const url = `${AUTH_SERVICE_URL}/auth/public-address/${address}`;
 
   const { error, data } = await getRequest({ url, authToken });
@@ -237,10 +283,29 @@ async function deleteRequest({ url, accessToken, authToken }) {
   }
 }
 
-async function relayTransaction({ publicAddress, privateKey, authToken }) {
+async function relayTransaction({
+  publicAddress, privateKey, authToken, env,
+}) {
+  const { relayer: RELAYER_SERVICE_URL } = await getBaseUrl(env);
+
   const url = `${RELAYER_SERVICE_URL}/set-handlename`;
 
-  const web3 = await new Web3(new Web3.providers.HttpProvider(`https://ropsten.infura.io/v3/${INFURA_KEY}`));
+  let web3;
+  let network;
+
+  await web3.eth.net.getNetworkType().then((e) => network = e);
+
+  if (network === 'main') {
+    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_MAINNET));
+  } else if (network === 'ropsten') {
+    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_ROPSTEN));
+  } else if (network === 'rinkeby') {
+    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_RINKEBY));
+  } else if (network === 'kovan') {
+    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_KOVAN));
+  } else {
+    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_GOERLI));
+  }
 
   const accountObject = web3.eth.accounts.privateKeyToAccount(privateKey);
   const signedData = accountObject.sign(publicAddress, privateKey);
@@ -273,4 +338,5 @@ module.exports = {
   verifyPublicAddress,
   deleteRequest,
   relayTransaction,
+  getBaseUrl,
 };

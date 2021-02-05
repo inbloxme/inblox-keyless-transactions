@@ -20,21 +20,21 @@ const {
   getAccessToken,
   deleteRequest,
   relayTransaction,
+  getBaseUrl,
 } = require('./utils/helper');
 
 let seeds;
 let firstNumber;
 let secondNumber;
 
-const { AUTH_SERVICE_URL } = require('./config');
-
 class PBTS {
-  constructor(authToken) {
+  constructor(authToken, env) {
     this.authToken = authToken;
+    this.env = env;
   }
 
   async storeKey({ privateKey, password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -46,13 +46,17 @@ class PBTS {
       params: { password },
       authToken: this.authToken,
       scope: 'transaction',
+      env: this.env,
     });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
 
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
+
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
+
     const { response, error: STORE_KEY_ERROR } = await postRequest({
       params: { encryptedPrivateKey },
       url,
@@ -68,7 +72,7 @@ class PBTS {
   }
 
   async getEncryptedPrivateKey({ password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken });
+    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -78,11 +82,14 @@ class PBTS {
       params: { password },
       authToken: this.authToken,
       scope: 'transaction',
+      env: this.env,
     });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
+
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
@@ -98,7 +105,7 @@ class PBTS {
   }
 
   async signAndSendTx({
-    password, rawTx,
+    password, rawTx, network,
   }) {
     const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await this.getEncryptedPrivateKey({ password });
 
@@ -113,7 +120,7 @@ class PBTS {
     }
 
     const pKey = privateKey.slice(2);
-    const { response, error: SEND_TX_ERROR } = await sendTransaction({ privateKey: pKey, rawTx });
+    const { response, error: SEND_TX_ERROR } = await sendTransaction({ privateKey: pKey, rawTx, network });
 
     if (SEND_TX_ERROR) {
       return { error: SEND_TX_ERROR };
@@ -141,6 +148,7 @@ class PBTS {
       password: newPassword,
       encryptedPrivateKey: newEncryptedPrivateKey,
       authToken: this.authToken,
+      env: this.env,
     });
 
     if (UPDATE_PASSWORD_ERROR) {
@@ -161,7 +169,7 @@ class PBTS {
       return { error: PRIVATE_KEY_ERROR };
     }
 
-    const { error: VERIFY_PUBLIC_ADDRESS_ERROR } = await verifyPublicAddress({ address: response.publicAddress, authToken: this.authToken });
+    const { error: VERIFY_PUBLIC_ADDRESS_ERROR } = await verifyPublicAddress({ address: response.publicAddress, authToken: this.authToken, env: this.env });
 
     if (VERIFY_PUBLIC_ADDRESS_ERROR) {
       return { error: VERIFY_PUBLIC_ADDRESS_ERROR };
@@ -173,6 +181,7 @@ class PBTS {
       password: newPassword,
       encryptedPrivateKey: newEncryptedPrivateKey,
       authToken: this.authToken,
+      env: this.env,
     });
 
     if (UPDATE_PASSWORD_ERROR) {
@@ -187,11 +196,14 @@ class PBTS {
       params: { password },
       authToken: this.authToken,
       scope: 'delete_private_key',
+      env: this.env,
     });
 
     if (GET_ACCESS_TOKEN_ERROR) {
       return { error: GET_ACCESS_TOKEN_ERROR };
     }
+
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
     const url = `${AUTH_SERVICE_URL}/auth/encrypted-private-key`;
 
@@ -213,7 +225,9 @@ class PBTS {
       return { error: STORE_KEY_ERROR };
     }
 
-    const { error, response } = await relayTransaction({ publicAddress, privateKey, authToken: this.authToken });
+    const { error, response } = await relayTransaction({
+      publicAddress, privateKey, authToken: this.authToken, env: this.env,
+    });
 
     if (error) {
       return { error };
@@ -224,11 +238,14 @@ class PBTS {
 }
 
 class LoginViaInblox {
-  constructor(accessToken) {
+  constructor(accessToken, env) {
     this.accessToken = accessToken;
+    this.env = env;
   }
 
   async login({ userName, password }) {
+    const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
+
     const url = `${AUTH_SERVICE_URL}/auth/login`;
     const params = { userName, password };
 
