@@ -1,9 +1,9 @@
 
-# Keyless Transactions - Inbloxme
+# Keyless Transactions - GetSafle
 
   
 
-This package enables usage of inblox handlename infrastructure as a keyless signing mechanism.
+This package enables usage of SafleId infrastructure as a keyless signing mechanism.
 
 
 > **Disclaimer - This is WIP, and release in alpha.**
@@ -14,7 +14,7 @@ Talking about user adoption, the bottleneck faced by most of the dApps is the us
 
 Keyless transactions abstracts the private key from the user and allows the user to sign transaction in an easy way while having the same level of security as before.
 
-Inblox Keyless Transactions allow users to sign transactions via,
+SafleId Keyless Transactions allow users to sign transactions via,
 
 1. Password
 2. Biometrics
@@ -30,10 +30,10 @@ Happy #BUIDLing
 
 ## Design Principles
 
- 1. **Private Key Abstraction** - Inbloxme infrastructure never have the visibility of the private key, it's encrypted on the client with the user password(unsalted & unencrypted) and sent to the virtual Hardware Security Module for safe storage.
+ 1. **Private Key Abstraction** - SafleId infrastructure never have the visibility of the private key, it's encrypted on the client with the user password(unsalted & unencrypted) and sent to the virtual Hardware Security Module for safe storage.
  2. **Password Invisibility** - User password is never exposed in plain text to any of the systems apart from the client.
- 3. **Non-Custodial Relationship** - User Private Key is always exportable and encrypted version can be deleted (redundant) from the inbloxme infrastructure.
- 4. **App Agnostic** - Any application without getting an API key can access inbloxme handlename service, password based transaction signing requires special access which can be requested for. (In Alpha Testing).
+ 3. **Non-Custodial Relationship** - User Private Key is always exportable and encrypted version can be deleted (redundant) from the SafleId infrastructure.
+ 4. **App Agnostic** - Any application without getting an API key can access SafleId service, password based transaction signing requires special access which can be requested for. (In Alpha Testing).
 
 ## Installation and Usage
 
@@ -63,17 +63,17 @@ Initialise the constructor using,
 > Encryption & Storage
 
 This method is used to store the private key after encrypting it with the user's password.
-The password of the user gets validated first before encrypting the private key and storing it in the Inblox Key Management System (KMS).
+The password of the user gets validated first before encrypting the private key and storing it in the GetSafle Key Management System (KMS).
 
 ```const StoreKey = PBTS.storeKey({ privateKey, password });```
 
-`privateKey` - The private key to be encrypted and stored in the Inblox Key Management System.
-`password` - The Inblox password of the user. This password is used to encrypt the private key.
+`privateKey` - The private key to be encrypted and stored in the GetSafle Key Management System.
+`password` - The SafleId password of the user. This password is used to encrypt the private key.
 
 
 > Get Encrypted Private Key
 
-This method is used to get the encrypted private key of the user from Inblox Key Management System.
+This method is used to get the encrypted private key of the user from GetSafle Key Management System.
 
 ```const encryptedPrivateKey = PBTS.getEncryptedPrivateKey({ password });```
 
@@ -82,7 +82,7 @@ This method is used to get the encrypted private key of the user from Inblox Key
 
 > Change Password
 
-This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the Inblox KMS.
+This method is used to change the existing password of a user. The old password of the user will get validated and it will be used to retrieve the encrypted private key of the user and decrypt it. Then the private key will be encrypted using the new password and it will get sent to the GetSafle KMS.
 
 ```const changePassword = PBTS.changePassword({ encryptedPrivateKey, oldPassword, newPassword, confirmPassword });```
 
@@ -94,7 +94,7 @@ This method is used to change the existing password of a user. The old password 
 
 > Reset Password
 
-This method is used to reset the password incase the user forgets thir existing password. The user will have to prove their ownership for their private key before re-encrypting their private key with their new password. This can be done by providing either their private key directly or the 12 word seed phrase or their keystore file with its password. The private key and public address will get extracted which will be used to verify against the public address stored with the Inblox systems.
+This method is used to reset the password incase the user forgets thir existing password. The user will have to prove their ownership for their private key before re-encrypting their private key with their new password. This can be done by providing either their private key directly or the 12 word seed phrase or their keystore file with its password. The private key and public address will get extracted which will be used to verify against the public address stored with the Safle systems.
 
 ```const resetPassword = PBTS.resetPassword({ privateKey, seedphrase, encryptedJson, walletPassword, newPassword, });```
 
@@ -115,7 +115,7 @@ This method can be used to sign a transaction using the user's private key. The 
 
 ```const signTx = PBTS.signAndSendTx({ password, rawTx });```
 
-`password` - The Inblox password of the user.
+`password` - The SafleId password of the user.
 `rawTx` - The raw transaction object.
 
 The `rawTx` object contains,
@@ -130,18 +130,18 @@ The `rawTx` object contains,
 
 > Delete Encrypted Private Key
 
-This method is used to delete a user's encypted private key from the Inblox Key Management System after authenticating the user's password.
+This method is used to delete a user's encypted private key from the GetSafle Key Management System after authenticating the user's password.
 
 ```const signTx = PBTS.deleteKey({ password });```
 
 `password` - The Inblox password of the user.
 
 
-> Register Handlename
+> Register SafleID
 
-This method is used to register a user's handlename.
+This method is used to register a user's safleId.
 
-```const signTx = PBTS.registerHandlename({ publicAddress, privateKey, password });```
+```const signTx = PBTS.registerSafleId({ publicAddress, privateKey, password });```
 
 `publicAddress` - Public address of the user.
 `privateKey` - The private key of the address.
@@ -201,31 +201,31 @@ This method is used to validate the user's seed phrase by asking them to provide
 `secondWord` - Word corresponding to the second number.
 
 
-##  Login Via Inblox
+##  Login Via Safle
 
 
 > Initialising
 
-To use Login Via Inblox method, initialise the constructor using,
+To use Login Via Safle method, initialise the constructor using,
 
-```const loginViaInblox = new inblox.LoginViaInblox(accessToken);```
+```const loginViaSafle = new inblox.LoginViaSafle(accessToken);```
 
 
-> Login Via Inblox
+> Login Via Safle
 
-This method is used to generate a Bearer token from the Inblox backend systems which can be used to initiate request to access protected resources.
+This method is used to generate a Bearer token from the GetSafle backend systems which can be used to initiate request to access protected resources.
 
-```const token = loginViaInblox.login({ userName, password });```
+```const token = loginViaSafle.login({ userName, password });```
 
-`userName` - The user's handlename or the email id associated with Inblox platform.
-`password` - The Inblox password of the user.
+`userName` - The user's safleId or the email id associated with Safle platform.
+`password` - The SafleId password of the user.
 
 
 > LogOut
 
-This method is used to logout from the Inblox platform.
+This method is used to logout from the GetSafle platform.
 
-```const token = loginViaInblox.logout();```
+```const token = loginViaSafle.logout();```
 
 
 > **Note - For all the methods, errors are returned under `error` key and success is returned under `response` key.**

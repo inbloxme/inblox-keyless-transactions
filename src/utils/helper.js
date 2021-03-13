@@ -99,7 +99,7 @@ async function postRequestWithAccessToken({
   }
 }
 
-async function postRequestForLoginViaInblox({ params, url, accessToken }) {
+async function postRequestForLoginViaSafle({ params, url, accessToken }) {
   try {
     const response = await axios({
       url,
@@ -288,7 +288,7 @@ async function relayTransaction({
 }) {
   const { relayer: RELAYER_SERVICE_URL } = await getBaseUrl(env);
 
-  const url = `${RELAYER_SERVICE_URL}/set-handlename`;
+  const url = `${RELAYER_SERVICE_URL}/set-safleid`;
 
   let web3;
   let network;
@@ -326,7 +326,7 @@ async function relayTransaction({
 
 module.exports = {
   getRequestWithAccessToken,
-  postRequestForLoginViaInblox,
+  postRequestForLoginViaSafle,
   postRequestWithAccessToken,
   getAccessToken,
   sendTransaction,
