@@ -155,7 +155,7 @@ This method is used to register a user's safleId.
 
 Initialise the constructor for Wallet generation and wallet import methods using,
 
-```const Wallet = new inblox.InbloxWallet();```
+```const Wallet = new inblox.SafleWallet();```
 
 
 > Generate New Wallet
