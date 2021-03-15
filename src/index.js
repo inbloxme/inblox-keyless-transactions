@@ -16,7 +16,7 @@ const {
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
-  postRequestForLoginViaInblox,
+  postRequestForLoginViaSafle,
   getAccessToken,
   deleteRequest,
   relayTransaction,
@@ -218,7 +218,7 @@ class PBTS {
     return { response: DELETE_SUCCESS };
   }
 
-  async registerHandlename({ publicAddress, privateKey, password }) {
+  async registerSafleId({ publicAddress, privateKey, password }) {
     const { error: STORE_KEY_ERROR } = await this.storeKey({ privateKey, password });
 
     if (STORE_KEY_ERROR) {
@@ -237,7 +237,7 @@ class PBTS {
   }
 }
 
-class LoginViaInblox {
+class LoginViaSafle {
   constructor(accessToken, env) {
     this.accessToken = accessToken;
     this.env = env;
@@ -249,7 +249,7 @@ class LoginViaInblox {
     const url = `${AUTH_SERVICE_URL}/auth/login`;
     const params = { userName, password };
 
-    const { error, response } = await postRequestForLoginViaInblox({ url, params, accessToken: this.accessToken });
+    const { error, response } = await postRequestForLoginViaSafle({ url, params, accessToken: this.accessToken });
 
     if (error) {
       return { error };
@@ -269,7 +269,7 @@ class LoginViaInblox {
   }
 }
 
-class InbloxWallet {
+class SafleWallet {
   async createWallet() {
     const wallet = Wallet.createRandom();
 
@@ -328,4 +328,4 @@ class InbloxWallet {
   }
 }
 
-module.exports = { PBTS, LoginViaInblox, InbloxWallet };
+module.exports = { PBTS, LoginViaSafle, SafleWallet };
