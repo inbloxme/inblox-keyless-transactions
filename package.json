@@ -1,6 +1,6 @@
 {
   "name": "@inbloxme/keyless-transactions-private",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Package for signing transactions using Inblox password.",
   "main": "src/index.js",
   "scripts": {
