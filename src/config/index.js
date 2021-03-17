@@ -10,4 +10,5 @@ module.exports = {
   RPC_URL_KOVAN: 'https://kovan.infura.io/v3/c52ef01cba8b4e1d8aa98c12c64318a9',
   RPC_URL_GOERLI: 'https://goerli.infura.io/v3/c52ef01cba8b4e1d8aa98c12c64318a9',
   RPC_URL_MAINNET: 'https://mainnet.infura.io/v3/c52ef01cba8b4e1d8aa98c12c64318a9',
+  MATIC_TESTNET_RPC: 'https://rpc-mumbai.maticvigil.com'
 };
