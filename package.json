@@ -1,6 +1,6 @@
 {
   "name": "@getsafle/keyless-transactions-private",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Package for signing transactions using Safle password.",
   "main": "src/index.js",
   "scripts": {
