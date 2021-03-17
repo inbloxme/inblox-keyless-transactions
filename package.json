@@ -1,7 +1,7 @@
 {
-  "name": "@inbloxme/keyless-transactions-private",
-  "version": "1.0.4",
-  "description": "Package for signing transactions using Inblox password.",
+  "name": "@getsafle/keyless-transactions-private",
+  "version": "1.0.0",
+  "description": "Package for signing transactions using Safle password.",
   "main": "src/index.js",
   "scripts": {
     "test": "npm-run-all --silent test-*",
@@ -28,16 +28,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inbloxme/inblox-keyless-transactions.git"
+    "url": "git+https://github.com/getsafle/safle-keyless-transactions.git"
   },
   "keywords": [
-    "inbloxme",
     "blockchain",
     "handlename",
     "ethereum"
   ],
   "bugs": {
-    "url": "https://github.com/inbloxme/inblox-keyless-transactions/issues"
+    "url": "https://github.com/getsafle/safle-keyless-transactions/issues"
   },
-  "homepage": "https://github.com/inbloxme/inblox-keyless-transactions#readme"
+  "homepage": "https://github.com/getsafle/safle-keyless-transactions#readme"
 }
