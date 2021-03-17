@@ -16,6 +16,7 @@ const {
   RPC_URL_KOVAN,
   RPC_URL_GOERLI,
   RPC_URL_MAINNET,
+  MATIC_TESTNET_RPC,
 } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
@@ -290,22 +291,7 @@ async function relayTransaction({
 
   const url = `${RELAYER_SERVICE_URL}/set-safleid`;
 
-  let web3;
-  let network;
-
-  await web3.eth.net.getNetworkType().then((e) => network = e);
-
-  if (network === 'main') {
-    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_MAINNET));
-  } else if (network === 'ropsten') {
-    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_ROPSTEN));
-  } else if (network === 'rinkeby') {
-    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_RINKEBY));
-  } else if (network === 'kovan') {
-    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_KOVAN));
-  } else {
-    web3 = await new Web3(new Web3.providers.HttpProvider(RPC_URL_GOERLI));
-  }
+  const web3 = await new Web3(new Web3.providers.HttpProvider(MATIC_TESTNET_RPC));
 
   const accountObject = web3.eth.accounts.privateKeyToAccount(privateKey);
   const signedData = accountObject.sign(publicAddress, privateKey);
