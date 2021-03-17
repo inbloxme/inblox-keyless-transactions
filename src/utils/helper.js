@@ -16,6 +16,7 @@ const {
   RPC_URL_KOVAN,
   RPC_URL_GOERLI,
   RPC_URL_MAINNET,
+  MATIC_TESTNET_RPC,
 } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
 
