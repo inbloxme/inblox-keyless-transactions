@@ -42,12 +42,12 @@ Happy #BUIDLing
 
 Install the package by running the command,
 
-```npm install @inbloxme/keyless-transactions-private```
+```npm install @getsafle/keyless-transactions-private```
 
 
 Import the package into your project using,
 
-```const inblox = require('@inbloxme/keyless-transactions-private');```
+```const safle = require('@getsafle/keyless-transactions-private');```
 
 
 ##  Password Based Transaction Sign
@@ -57,7 +57,7 @@ Import the package into your project using,
 
 Initialise the constructor using,
 
-```const PBTS = new inblox.PBTS(authenticationToken);```
+```const PBTS = new safle.PBTS(authenticationToken);```
 
 
 > Encryption & Storage
@@ -134,7 +134,7 @@ This method is used to delete a user's encypted private key from the GetSafle Ke
 
 ```const signTx = PBTS.deleteKey({ password });```
 
-`password` - The Inblox password of the user.
+`password` - The Safle password of the user.
 
 
 > Register SafleID
@@ -145,7 +145,7 @@ This method is used to register a user's safleId.
 
 `publicAddress` - Public address of the user.
 `privateKey` - The private key of the address.
-`password` - The Inblox password of the user.
+`password` - The Safle password of the user.
 
 
 ##  Wallet Generation
@@ -155,7 +155,7 @@ This method is used to register a user's safleId.
 
 Initialise the constructor for Wallet generation and wallet import methods using,
 
-```const Wallet = new inblox.SafleWallet();```
+```const Wallet = new safle.SafleWallet();```
 
 
 > Generate New Wallet
@@ -208,7 +208,7 @@ This method is used to validate the user's seed phrase by asking them to provide
 
 To use Login Via Safle method, initialise the constructor using,
 
-```const loginViaSafle = new inblox.LoginViaSafle(accessToken);```
+```const loginViaSafle = new safle.LoginViaSafle(accessToken);```
 
 
 > Login Via Safle
@@ -237,4 +237,4 @@ Want to contribute, we would :heart: that!
 
 We are a Global :earth_asia::earth_africa::earth_americas: team! :muscle:
 
-Write to dev@inblox.me, or follow us on twitter, [https://twitter.com/inblox_me](https://twitter.com/inblox_me)
+Write to dev@getsafle.com, or follow us on twitter, [https://twitter.com/getsafle](https://twitter.com/getsafle)
