@@ -191,6 +191,22 @@ class Vault {
 
     return { response: signedMessage };
   }
+
+  async signTransaction(rawTx, password, authToken) {
+    const { error: PASSWORD_VALIDATION_ERROR } = await this.validatePassword(password, authToken);
+
+    if (PASSWORD_VALIDATION_ERROR) {
+      return { error: PASSWORD_VALIDATION_ERROR };
+    }
+
+    const { error, response: signedTransaction } = await this.vault.signTransaction(rawTx, password);
+
+    if (error) {
+      return { error };
+    }
+
+    return { response: signedTransaction };
+  }
 }
 
 module.exports = Vault;
