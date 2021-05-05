@@ -6,6 +6,8 @@ const localStorage = require('local-storage');
 const crypto = require('crypto');
 const aes = require('aes-js');
 
+const Vault = require('./lib/vault');
+
 const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
 } = require('./constants/response');
@@ -367,4 +369,6 @@ class SafleWallet {
   }
 }
 
-module.exports = { PBTS, LoginViaSafle, SafleWallet };
+module.exports = {
+  PBTS, LoginViaSafle, SafleWallet, Vault,
+};
