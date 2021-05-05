@@ -151,6 +151,22 @@ class Vault {
 
     return { response: accounts };
   }
+
+  async exportPrivateKey(vault, address, password, authToken) {
+    const { error: PASSWORD_VALIDATION_ERROR } = await this.validatePassword(password, authToken);
+
+    if (PASSWORD_VALIDATION_ERROR) {
+      return { error: PASSWORD_VALIDATION_ERROR };
+    }
+
+    const { response: privateKey, error } = await this.vault.exportPrivateKey(vault, address, password);
+
+    if (error) {
+      return { error };
+    }
+
+    return { response: privateKey };
+  }
 }
 
 module.exports = Vault;
