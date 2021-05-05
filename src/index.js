@@ -11,7 +11,7 @@ const {
 } = require('./constants/response');
 const {
   getRequestWithAccessToken: getRequest,
-  postRequestWithAccessToken: postRequest,
+  postRequestWithAccessToken,
   sendTransaction,
   encryptKey,
   decryptKey,
@@ -62,7 +62,7 @@ class PBTS {
 
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
 
-    const { response, error: STORE_KEY_ERROR } = await postRequest({
+    const { response, error: STORE_KEY_ERROR } = await postRequestWithAccessToken({
       params: { encryptedPrivateKey },
       url,
       authToken: this.authToken,
@@ -96,7 +96,7 @@ class PBTS {
 
     const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY_ERROR } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -106,19 +106,27 @@ class PBTS {
       return { response: data.data.encryptedPrivateKey };
     }
 
-    return { error: GET_ENCRYPTED_PRIVATE_KEY };
+    return { error: GET_ENCRYPTED_PRIVATE_KEY_ERROR };
   }
 
   async signAndSendTx({
-    password, rawTx, network,
+    password, rawTx, network, encryptedPrivateKey,
   }) {
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await this.getEncryptedPrivateKey({ password });
+    let encryptedPKey;
 
-    if (GET_KEY_ERROR) {
-      return { error: GET_KEY_ERROR };
+    if (!encryptedPrivateKey) {
+      const { error: GET_KEY_ERROR, response: encryptedpKey } = await this.getEncryptedPrivateKey({ password });
+
+      if (GET_KEY_ERROR) {
+        return { error: GET_KEY_ERROR };
+      }
+
+      encryptedPKey = encryptedpKey;
+    } else {
+      encryptedPKey = encryptedPrivateKey;
     }
 
-    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password });
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey(encryptedPKey, password);
 
     if (DECRYPT_KEY_ERROR) {
       return { error: DECRYPT_KEY_ERROR };
@@ -141,7 +149,7 @@ class PBTS {
       return { error: PASSWORD_MATCH_ERROR };
     }
 
-    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey(encryptedPrivateKey, oldPassword);
 
     if (DECRYPT_KEY_ERROR) {
       return { error: DECRYPT_KEY_ERROR };
