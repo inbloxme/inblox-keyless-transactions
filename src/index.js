@@ -15,7 +15,7 @@ const {
   sendTransaction,
   encryptKey,
   decryptKey,
-  validatePassword,
+  _validatePassword,
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
@@ -39,7 +39,7 @@ class PBTS {
   }
 
   async storeKey({ privateKey, password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -77,7 +77,7 @@ class PBTS {
   }
 
   async getEncryptedPrivateKey({ password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };

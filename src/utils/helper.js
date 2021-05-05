@@ -29,7 +29,7 @@ async function _generatePDKeyHash(safleId, password) {
   const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
 
   const passwordDerivedKeyHash = crypto.createHash('sha512', passwordDerivedKey);
-  const passwordDerivedKeyHashHex = passwordDerivedKeyHash._options.toString('hex');
+  const passwordDerivedKeyHashHex = passwordDerivedKeyHash.digest('hex');
 
   return passwordDerivedKeyHashHex;
 }
