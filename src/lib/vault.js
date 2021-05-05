@@ -66,7 +66,7 @@ class Vault {
       return { error };
     }
 
-    const { error: RETRIEVE_ERROR, response } = await this.vault.retrieveVault(password, this.env, this.authToken, persistLocation);
+    const { error: RETRIEVE_ERROR, response } = await this.vault.retrieveVault(password, this.env, authToken, persistLocation);
 
     if (RETRIEVE_ERROR) {
       return { error: RETRIEVE_ERROR };
@@ -144,6 +144,12 @@ class Vault {
     }
 
     return { response };
+  }
+
+  async getAccounts() {
+    const { response: accounts } = await this.vault.getAccounts();
+
+    return { response: accounts };
   }
 }
 
