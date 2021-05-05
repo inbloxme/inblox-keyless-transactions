@@ -13,7 +13,8 @@ const {
 } = require('../config');
 
 class Vault {
-  constructor(network) {
+  constructor(network, env) {
+    this.env = env;
     this.network = network;
     this.initializeVaultSDK();
   }
@@ -36,8 +37,8 @@ class Vault {
     this.vault = vault;
   }
 
-  async validatePassword(password) {
-    const { error, response } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
+  async validatePassword(password, authToken) {
+    const { error, response } = await _validatePassword({ password, authToken, env: this.env });
 
     if (error) {
       return { error };
@@ -46,8 +47,8 @@ class Vault {
     return { response };
   }
 
-  async generateVault(password) {
-    const { error } = await this.validatePassword(password);
+  async generateVault(password, authToken) {
+    const { error } = await this.validatePassword(password, authToken);
 
     if (error) {
       return { error };
@@ -56,6 +57,22 @@ class Vault {
     const { response: vault } = await this.vault.generateVault(password);
 
     return { response: vault };
+  }
+
+  async retrieveVault(password, persistLocation, authToken) {
+    const { error } = await this.validatePassword(password, authToken);
+
+    if (error) {
+      return { error };
+    }
+
+    const { error: RETRIEVE_ERROR, response } = await this.vault.retrieveVault(password, this.env, this.authToken, persistLocation);
+
+    if (RETRIEVE_ERROR) {
+      return { error: RETRIEVE_ERROR };
+    }
+
+    return { response };
   }
 }
 
