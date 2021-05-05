@@ -25,6 +25,7 @@ const {
   relayTransaction,
   getBaseUrl,
   generateEncryptionKey,
+  _generatePDKeyHash,
 } = require('./utils/helper');
 
 let seeds;
@@ -258,6 +259,12 @@ class PBTS {
     const passwordHashHex = passwordHash.toString('hex');
 
     return passwordHashHex;
+  }
+
+  async generatePDKeyHash(safleId, password) {
+    const PDKeyHash = await _generatePDKeyHash(safleId, password);
+
+    return PDKeyHash;
   }
 }
 
