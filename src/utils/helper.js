@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 /* eslint-disable no-return-assign */
 const ethers = require('ethers');
 const cryptojs = require('crypto-js');
@@ -6,8 +5,6 @@ const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 const cryptoRandomString = require('get-random-values');
-const crypto = require('crypto');
-const aes = require('aes-js');
 
 const {
   AUTH_SERVICE_URL_PROD,
@@ -322,17 +319,6 @@ async function generateEncryptionKey() {
   return encryptionKey;
 }
 
-async function encryptEncryptionKey(safleId, password) {
-  const encryptionKey = await generateEncryptionKey();
-
-  const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
-
-  const aesCBC = new aes.ModeOfOperation.cbc(passwordDerivedKey);
-  const encryptedEncryptionKey = aesCBC.encrypt(encryptionKey);
-
-  return encryptedEncryptionKey;
-}
-
 module.exports = {
   getRequestWithAccessToken,
   postRequestForLoginViaSafle,
@@ -348,5 +334,5 @@ module.exports = {
   deleteRequest,
   relayTransaction,
   getBaseUrl,
-  encryptEncryptionKey,
+  generateEncryptionKey,
 };
