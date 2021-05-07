@@ -181,6 +181,16 @@ class Vault {
 
     return { response: seeds };
   }
+
+  async signMessage(address, data) {
+    const { error, response: signedMessage } = await this.vault.signMessage(address, data);
+
+    if (error) {
+      return { error };
+    }
+
+    return { response: signedMessage };
+  }
 }
 
 module.exports = Vault;
