@@ -250,6 +250,15 @@ class PBTS {
 
     return encryptedEncryptionKey;
   }
+
+  async hashPassword(safleId, password) {
+    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+    const passwordHash = crypto.pbkdf2Sync(passwordDerivedKey, password, 10000, 32, 'sha512');
+    const passwordHashHex = passwordHash.toString('hex');
+
+    return passwordHashHex;
+  }
 }
 
 class LoginViaSafle {
