@@ -4,6 +4,8 @@ const cryptojs = require('crypto-js');
 const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
+const cryptoRandomString = require('get-random-values');
+
 const {
   AUTH_SERVICE_URL_PROD,
   AUTH_SERVICE_URL_DEV,
@@ -310,6 +312,13 @@ async function relayTransaction({
   return { response };
 }
 
+async function generateEncryptionKey() {
+  const bytes = new Uint8Array(64);
+  const encryptionKey = cryptoRandomString(bytes);
+
+  return encryptionKey;
+}
+
 module.exports = {
   getRequestWithAccessToken,
   postRequestForLoginViaSafle,
@@ -325,4 +334,5 @@ module.exports = {
   deleteRequest,
   relayTransaction,
   getBaseUrl,
+  generateEncryptionKey,
 };

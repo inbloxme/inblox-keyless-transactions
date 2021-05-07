@@ -1,7 +1,10 @@
+/* eslint-disable new-cap */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 const { Wallet } = require('ethers');
 const localStorage = require('local-storage');
+const crypto = require('crypto');
+const aes = require('aes-js');
 
 const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
@@ -21,6 +24,7 @@ const {
   deleteRequest,
   relayTransaction,
   getBaseUrl,
+  generateEncryptionKey,
 } = require('./utils/helper');
 
 let seeds;
@@ -234,6 +238,17 @@ class PBTS {
     }
 
     return { response };
+  }
+
+  async encryptEncryptionKey(safleId, password) {
+    const encryptionKey = await generateEncryptionKey();
+
+    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+    const aesCBC = new aes.ModeOfOperation.cbc(passwordDerivedKey);
+    const encryptedEncryptionKey = aesCBC.encrypt(encryptionKey);
+
+    return encryptedEncryptionKey;
   }
 }
 
