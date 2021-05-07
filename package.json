@@ -17,6 +17,7 @@
     "ethereumjs-tx": "^2.1.2",
     "ethers": "^4.0.47",
     "get-random-values": "^1.2.2",
+    "jwt-decode": "^2.2.0",
     "local-storage": "^2.0.0",
     "web3": "^1.2.6"
   },

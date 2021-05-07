@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-return-assign */
 const ethers = require('ethers');
 const cryptojs = require('crypto-js');
@@ -5,6 +6,8 @@ const axios = require('axios');
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 const cryptoRandomString = require('get-random-values');
+const crypto = require('crypto');
+const jwtDecode = require('jwt-decode');
 
 const {
   AUTH_SERVICE_URL_PROD,
@@ -21,6 +24,15 @@ const {
   MATIC_TESTNET_RPC,
 } = require('../config');
 const { WRONG_PASSWORD, INVALID_MNEMONIC } = require('../constants/response');
+
+async function _generatePDKeyHash(safleId, password) {
+  const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+  const passwordDerivedKeyHash = crypto.createHash('sha512', passwordDerivedKey);
+  const passwordDerivedKeyHashHex = passwordDerivedKeyHash.digest('hex');
+
+  return passwordDerivedKeyHashHex;
+}
 
 async function getBaseUrl(env) {
   if (env === 'test') {
@@ -189,16 +201,20 @@ async function decryptKey({ encryptedPrivateKey, password }) {
   return { response: privateKey };
 }
 
-async function validatePassword({ password, authToken, env }) {
+async function _validatePassword({ password, authToken, env }) {
+  const { safleId } = jwtDecode(authToken);
+
+  const PDKeyHash = await _generatePDKeyHash(safleId, password);
+
   const { auth: AUTH_SERVICE_URL } = await getBaseUrl(env);
   const url = `${AUTH_SERVICE_URL}/auth/authenticate-password`;
-  const { response, error } = await postRequest({ params: { password }, url, authToken });
+  const { error } = await postRequest({ params: { PDKeyHash }, url, authToken });
 
   if (error) {
     return { error };
   }
 
-  return { response };
+  return { response: 'Password validated successfully.' };
 }
 
 async function updatePasswordAndPrivateKey({
@@ -327,7 +343,7 @@ module.exports = {
   sendTransaction,
   encryptKey,
   decryptKey,
-  validatePassword,
+  _validatePassword,
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
@@ -335,4 +351,5 @@ module.exports = {
   relayTransaction,
   getBaseUrl,
   generateEncryptionKey,
+  _generatePDKeyHash,
 };

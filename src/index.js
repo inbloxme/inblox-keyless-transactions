@@ -15,7 +15,7 @@ const {
   sendTransaction,
   encryptKey,
   decryptKey,
-  validatePassword,
+  _validatePassword,
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
@@ -25,6 +25,7 @@ const {
   relayTransaction,
   getBaseUrl,
   generateEncryptionKey,
+  _generatePDKeyHash,
 } = require('./utils/helper');
 
 let seeds;
@@ -38,7 +39,7 @@ class PBTS {
   }
 
   async storeKey({ privateKey, password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -76,7 +77,7 @@ class PBTS {
   }
 
   async getEncryptedPrivateKey({ password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -258,6 +259,12 @@ class PBTS {
     const passwordHashHex = passwordHash.toString('hex');
 
     return passwordHashHex;
+  }
+
+  async generatePDKeyHash(safleId, password) {
+    const PDKeyHash = await _generatePDKeyHash(safleId, password);
+
+    return PDKeyHash;
   }
 }
 
