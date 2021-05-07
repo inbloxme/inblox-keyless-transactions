@@ -74,6 +74,20 @@ class Vault {
 
     return { response };
   }
+
+  async addAccount(vault, password, authToken) {
+    const { error } = await this.validatePassword(password, authToken);
+
+    if (error) {
+      return { error };
+    }
+
+    const { response: keyring } = await this.vault.extractKeyring(vault, password);
+
+    const { response } = await this.vault.addAccount(keyring, password);
+
+    return { response };
+  }
 }
 
 module.exports = Vault;
