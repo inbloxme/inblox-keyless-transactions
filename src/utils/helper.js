@@ -190,7 +190,7 @@ async function encryptKey({ privateKey, password }) {
   return { response: encryptedPrivateKeyString };
 }
 
-async function decryptKey({ encryptedPrivateKey, password }) {
+async function decryptKey(encryptedPrivateKey, password) {
   const bytes = cryptojs.AES.decrypt(encryptedPrivateKey, password);
   const privateKey = bytes.toString(cryptojs.enc.Utf8);
 
