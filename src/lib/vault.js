@@ -88,6 +88,48 @@ class Vault {
 
     return { response };
   }
+
+  async persistVault(vault, password, persistType, persistLocation, authToken) {
+    const { error: PERSIST_ERROR, response } = await this.vault.persistVault(vault, authToken, this.env, password, persistType, persistLocation);
+
+    if (PERSIST_ERROR) {
+      return { error: PERSIST_ERROR };
+    }
+
+    return { response };
+  }
+
+  async generateVaultAndPersist(password, persistLocation, authToken) {
+    const { response: vault, error } = await this.generateVault(password, authToken);
+
+    if (error) {
+      return { error };
+    }
+
+    const { error: PERSIST_ERROR, response } = await this.persistVault(vault, password, 'POST', persistLocation, authToken);
+
+    if (PERSIST_ERROR) {
+      return { error: PERSIST_ERROR };
+    }
+
+    return { response };
+  }
+
+  async addAccountAndPersist(vault, password, persistLocation, authToken) {
+    const { error, response: newVault } = await this.addAccount(vault, password, authToken);
+
+    if (error) {
+      return { error };
+    }
+
+    const { error: PERSIST_ERROR, response } = await this.persistVault(newVault, password, 'PATCH', persistLocation, authToken);
+
+    if (PERSIST_ERROR) {
+      return { error: PERSIST_ERROR };
+    }
+
+    return { response };
+  }
 }
 
 module.exports = Vault;
