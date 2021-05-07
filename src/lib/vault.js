@@ -130,6 +130,21 @@ class Vault {
 
     return { response };
   }
+
+  async deleteVault(password, authToken) {
+    const { error } = await this.validatePassword(password, authToken);
+
+    if (error) {
+      return { error };
+    }
+    const { error: DELETE_ERROR, response } = await this.vault.deleteVault(password, this.env, authToken);
+
+    if (DELETE_ERROR) {
+      return { error: DELETE_ERROR };
+    }
+
+    return { response };
+  }
 }
 
 module.exports = Vault;
