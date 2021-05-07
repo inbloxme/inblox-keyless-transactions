@@ -167,6 +167,20 @@ class Vault {
 
     return { response: privateKey };
   }
+
+  async exportSeeds(vault, password, authToken) {
+    const { error: PASSWORD_VALIDATION_ERROR } = await this.validatePassword(password, authToken);
+
+    if (PASSWORD_VALIDATION_ERROR) {
+      return { error: PASSWORD_VALIDATION_ERROR };
+    }
+
+    const { response: keyring } = await this.vault.extractKeyring(vault, password);
+
+    const { response: seeds } = await this.vault.exportSeeds(keyring);
+
+    return { response: seeds };
+  }
 }
 
 module.exports = Vault;
