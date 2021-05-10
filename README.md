@@ -227,6 +227,157 @@ This method is used to logout from the GetSafle platform.
 
 ```const token = loginViaSafle.logout();```
 
+##  Vault Methods
+
+
+> Initialising
+
+To use the Vault methods, initialise the constructor using,
+
+```const vault = new safle.Vault(network, env);```
+
+`network` - The web3 network to be used.
+`env` - The safle services evnironment to be used.
+
+
+> Validate Password
+
+This method is used to validate the safle password of the user.
+
+```const isValid = vault.validatePassword(password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+
+
+> Generate Vault
+
+This method is used to generate a vault for the user with 1 Ethereum account inside the keyring. The keyring is encrypted with the user's safle password to get the vault.
+
+```const vault = vault.generateVault(password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+
+
+> Retrieve Vault
+
+This method is used to retrieve the vault stored on the cloud.
+
+```const vault = vault.retrieveVault(password, persistLocation, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`persistLocation` - The location where the vault is persisted. The values can be `mobile`, `cloud` or `browser`.
+
+
+> Add Account
+
+This method is used to retrieve the vault stored on the cloud. Returns the new vault string with an additional account added.
+
+```const vault = vault.addAccount(vault, password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`vault` - The vault instance in string.
+
+
+> Persist Vault
+
+This method is used to persist the vault onto the cloud or browser extension data or on mobile device.
+
+```const persist = vault.persistVault(vault, password, persistType, persistLocation, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`vault` - The vault instance in string.
+`persistType` - The request type for persistence. To persist a vault for the first time, `persistType` value would be `POST`. For persistence after updation, the `persistType` value would be `PATCH`.
+`persistLocation` - The location for the vault to perist. Values can be `cloud`, `mobile` or `browser`.
+
+
+> Generate Vault & Persist
+
+This method is used to generate and persist the vault onto the cloud or browser extension data or on mobile device.
+
+```const vault = vault.generateVaultAndPersist(password, persistLocation, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`persistLocation` - The location for the vault to perist. Values can be `cloud`, `mobile` or `browser`.
+
+
+> Add Account & Persist
+
+This method is used to add a new account to the keyring and persist the vault onto the cloud or browser extension data or on mobile device.
+
+```const vault = vault.addAccountAndPersist(vault, password, persistLocation, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`vault` - The vault instance in string.
+`persistLocation` - The location for the vault to perist. Values can be `cloud`, `mobile` or `browser`.
+
+
+> Delete Vault
+
+This method is used to delete the vault instance from the cloud.
+
+```const deleteVault = vault.deleteVault(password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+
+
+> Get Accounts
+
+This method is used to get the list of accounts from the keyring inside the vault.
+
+```const accounts = vault.getAccounts();```
+
+
+> Export Private Key
+
+This method is used to get the private key of an account from the keyring.
+
+```const privateKey = vault.exportPrivateKey(vault, address, password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`vault` - The vault instance in string.
+`address` - The address for which the private key has to be returned.
+
+
+> Export Seeds
+
+This method is used to get the 12 word mnemonic seeds from which the keyring is generated.
+
+```const seeds = vault.exportSeeds(vault, password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`vault` - The vault instance in string.
+
+
+> Sign Message
+
+This method is used to sign a message from a given address.
+
+```const signedMessage = vault.signMessage(address, data);```
+
+`address` - The address of the account from which the message is to be signed.
+`data` - The data to be signed.
+
+
+> Sign Transaction
+
+This method is used to sign a transaction from the private key of the `from` address.
+
+```const signedTransaction = vault.signTransaction(rawTx, password, authToken);```
+
+`authToken` - The jwt authentication token associated with the user.
+`password` - The SafleId password of the user.
+`rawTx` - The rawTx to be signed. The rawTx object should contain `to` and `from`. `value`, `data`, `nonce`, `gasPrice` and `gasLimit` are optional.
+
 
 > **Note - For all the methods, errors are returned under `error` key and success is returned under `response` key.**
 
