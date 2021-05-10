@@ -148,6 +148,36 @@ This method is used to register a user's safleId.
 `password` - The Safle password of the user.
 
 
+> Generate Encrypted Encryption Key
+
+This method is used to generate an encrypted encryption key.
+
+```const encryptedEncryptionKey = PBTS.encryptEncryptionKey(safleId, password);```
+
+`safleId` - The safleId of the user.
+`password` - The Safle password of the user.
+
+
+> Generate Hashed Password
+
+This method is used to generate the pbkdf2 hash of the password.
+
+```const hashedPassword = PBTS.hashPassword(safleId, password);```
+
+`safleId` - The safleId of the user.
+`password` - The Safle password of the user.
+
+
+> Generate PDKeyHash
+
+This method is used to generate the PDKeyHash from the user's safleId and password.
+
+```const PDKeyHash = PBTS.generatePDKeyHash(safleId, password);```
+
+`safleId` - The safleId of the user.
+`password` - The Safle password of the user.
+
+
 ##  Wallet Generation
 
 
