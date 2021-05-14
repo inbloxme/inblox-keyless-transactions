@@ -1,18 +1,23 @@
+/* eslint-disable new-cap */
 /* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 const { Wallet } = require('ethers');
 const localStorage = require('local-storage');
+const crypto = require('crypto');
+const aes = require('aes-js');
+
+const Vault = require('./lib/vault');
 
 const {
   WRONG_PASSWORD, INVALID_MNEMONIC, PASSWORD_MATCH_ERROR, PASSWORD_CHANGE_SUCCESS, DELETE_SUCCESS, LOGOUT_SUCCESS,
 } = require('./constants/response');
 const {
   getRequestWithAccessToken: getRequest,
-  postRequestWithAccessToken: postRequest,
+  postRequestWithAccessToken,
   sendTransaction,
   encryptKey,
   decryptKey,
-  validatePassword,
+  _validatePassword,
   updatePasswordAndPrivateKey,
   extractPrivateKey,
   verifyPublicAddress,
@@ -21,6 +26,8 @@ const {
   deleteRequest,
   relayTransaction,
   getBaseUrl,
+  generateEncryptionKey,
+  _generatePDKeyHash,
 } = require('./utils/helper');
 
 let seeds;
@@ -34,7 +41,7 @@ class PBTS {
   }
 
   async storeKey({ privateKey, password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -57,7 +64,7 @@ class PBTS {
 
     const url = `${AUTH_SERVICE_URL}/auth/private-key`;
 
-    const { response, error: STORE_KEY_ERROR } = await postRequest({
+    const { response, error: STORE_KEY_ERROR } = await postRequestWithAccessToken({
       params: { encryptedPrivateKey },
       url,
       authToken: this.authToken,
@@ -72,7 +79,7 @@ class PBTS {
   }
 
   async getEncryptedPrivateKey({ password }) {
-    const { error: VALIDATE_PASSWORD_ERROR } = await validatePassword({ password, authToken: this.authToken, env: this.env });
+    const { error: VALIDATE_PASSWORD_ERROR } = await _validatePassword({ password, authToken: this.authToken, env: this.env });
 
     if (VALIDATE_PASSWORD_ERROR) {
       return { error: VALIDATE_PASSWORD_ERROR };
@@ -91,7 +98,7 @@ class PBTS {
 
     const { auth: AUTH_SERVICE_URL } = await getBaseUrl(this.env);
 
-    const { data, error: GET_ENCRYPTED_PRIVATE_KEY } = await getRequest({
+    const { data, error: GET_ENCRYPTED_PRIVATE_KEY_ERROR } = await getRequest({
       url: `${AUTH_SERVICE_URL}/auth/private-key`,
       authToken: this.authToken,
       accessToken,
@@ -101,19 +108,27 @@ class PBTS {
       return { response: data.data.encryptedPrivateKey };
     }
 
-    return { error: GET_ENCRYPTED_PRIVATE_KEY };
+    return { error: GET_ENCRYPTED_PRIVATE_KEY_ERROR };
   }
 
   async signAndSendTx({
-    password, rawTx, network,
+    password, rawTx, network, encryptedPrivateKey,
   }) {
-    const { error: GET_KEY_ERROR, response: encryptedPrivateKey } = await this.getEncryptedPrivateKey({ password });
+    let encryptedPKey;
 
-    if (GET_KEY_ERROR) {
-      return { error: GET_KEY_ERROR };
+    if (!encryptedPrivateKey) {
+      const { error: GET_KEY_ERROR, response: encryptedpKey } = await this.getEncryptedPrivateKey({ password });
+
+      if (GET_KEY_ERROR) {
+        return { error: GET_KEY_ERROR };
+      }
+
+      encryptedPKey = encryptedpKey;
+    } else {
+      encryptedPKey = encryptedPrivateKey;
     }
 
-    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password });
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey(encryptedPKey, password);
 
     if (DECRYPT_KEY_ERROR) {
       return { error: DECRYPT_KEY_ERROR };
@@ -136,7 +151,7 @@ class PBTS {
       return { error: PASSWORD_MATCH_ERROR };
     }
 
-    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey({ encryptedPrivateKey, password: oldPassword });
+    const { error: DECRYPT_KEY_ERROR, response: privateKey } = await decryptKey(encryptedPrivateKey, oldPassword);
 
     if (DECRYPT_KEY_ERROR) {
       return { error: DECRYPT_KEY_ERROR };
@@ -235,6 +250,32 @@ class PBTS {
 
     return { response };
   }
+
+  async encryptEncryptionKey(safleId, password) {
+    const encryptionKey = await generateEncryptionKey();
+
+    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+    const aesCBC = new aes.ModeOfOperation.cbc(passwordDerivedKey);
+    const encryptedEncryptionKey = aesCBC.encrypt(encryptionKey);
+
+    return encryptedEncryptionKey;
+  }
+
+  async hashPassword(safleId, password) {
+    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+    const passwordHash = crypto.pbkdf2Sync(passwordDerivedKey, password, 10000, 32, 'sha512');
+    const passwordHashHex = passwordHash.toString('hex');
+
+    return passwordHashHex;
+  }
+
+  async generatePDKeyHash(safleId, password) {
+    const PDKeyHash = await _generatePDKeyHash(safleId, password);
+
+    return PDKeyHash;
+  }
 }
 
 class LoginViaSafle {
@@ -328,4 +369,6 @@ class SafleWallet {
   }
 }
 
-module.exports = { PBTS, LoginViaSafle, SafleWallet };
+module.exports = {
+  PBTS, LoginViaSafle, SafleWallet, Vault,
+};
