@@ -34,6 +34,32 @@ let seeds;
 let firstNumber;
 let secondNumber;
 
+async function encryptEncryptionKey(safleId, password) {
+  const encryptionKey = await generateEncryptionKey();
+
+  const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+  const aesCBC = new aes.ModeOfOperation.cbc(passwordDerivedKey);
+  const encryptedEncryptionKey = aesCBC.encrypt(encryptionKey);
+
+  return encryptedEncryptionKey;
+}
+
+async function hashPassword(safleId, password) {
+  const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
+
+  const passwordHash = crypto.pbkdf2Sync(passwordDerivedKey, password, 10000, 32, 'sha512');
+  const passwordHashHex = passwordHash.toString('hex');
+
+  return passwordHashHex;
+}
+
+async function generatePDKeyHash(safleId, password) {
+  const PDKeyHash = await _generatePDKeyHash(safleId, password);
+
+  return PDKeyHash;
+}
+
 class PBTS {
   constructor(authToken, env) {
     this.authToken = authToken;
@@ -250,32 +276,6 @@ class PBTS {
 
     return { response };
   }
-
-  async encryptEncryptionKey(safleId, password) {
-    const encryptionKey = await generateEncryptionKey();
-
-    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
-
-    const aesCBC = new aes.ModeOfOperation.cbc(passwordDerivedKey);
-    const encryptedEncryptionKey = aesCBC.encrypt(encryptionKey);
-
-    return encryptedEncryptionKey;
-  }
-
-  async hashPassword(safleId, password) {
-    const passwordDerivedKey = crypto.pbkdf2Sync(safleId, password, 10000, 32, 'sha512');
-
-    const passwordHash = crypto.pbkdf2Sync(passwordDerivedKey, password, 10000, 32, 'sha512');
-    const passwordHashHex = passwordHash.toString('hex');
-
-    return passwordHashHex;
-  }
-
-  async generatePDKeyHash(safleId, password) {
-    const PDKeyHash = await _generatePDKeyHash(safleId, password);
-
-    return PDKeyHash;
-  }
 }
 
 class LoginViaSafle {
@@ -370,5 +370,5 @@ class SafleWallet {
 }
 
 module.exports = {
-  PBTS, LoginViaSafle, SafleWallet, Vault,
+  PBTS, LoginViaSafle, SafleWallet, Vault, encryptEncryptionKey, hashPassword, generatePDKeyHash,
 };
